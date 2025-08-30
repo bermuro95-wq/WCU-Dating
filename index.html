@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WCU Dating - Connect with Fellow Students</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase App and Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #6a1b9a;
+            --primary-light: #9c4dcc;
+            --primary-dark: #38006b;
+            --accent-color: #e1bee7;
+            --text-dark: #333;
+            --text-light: #fff;
+            --bg-light: #f5f5f5;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary-color));
+            color: var(--text-light);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: #ff4081;
+            font-size: 1.8rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+        }
+
+        /* Navigation */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        nav a:hover, nav a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home Section */
+        .hero {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: linear-gradient(rgba(106, 27, 154, 0.9), rgba(106, 27, 154, 0.8)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%236a1b9a"/><text x="50%" y="50%" font-size="20" text-anchor="middle" fill="%23ffffff" font-family="Arial">WCU</text></svg>');
+            background-size: cover;
+            border-radius: var(--border-radius);
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Form Styles */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .form-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Dashboard */
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-img {
+            height: 160px;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-img i {
+            font-size: 4rem;
+            color: white;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Browse Students */
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .student-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .student-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .student-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .student-img {
+            height: 200px;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .student-img i {
+            font-size: 5rem;
+            color: var(--primary-color);
+        }
+
+        .student-info {
+            padding: 1.5rem;
+        }
+
+        .student-name {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .student-details {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Messages */
+        .messages-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+            height: 500px;
+        }
+
+        .conversations-list {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .conversation {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .conversation:hover, .conversation.active {
+            background-color: #f9f9f9;
+        }
+
+        .conversation-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .conversation-img i {
+            color: var(--primary-color);
+        }
+
+        .chat-window {
+            background: white;
+            border-radius: var(--border-radius);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+        }
+
+        .chat-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            font-weight: 500;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+        }
+
+        .message.received {
+            background-color: #f0f0f0;
+            align-self: flex-start;
+        }
+
+        .message.sent {
+            background-color: var(--primary-light);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+            border-right: none;
+        }
+
+        .chat-input button {
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary-dark);
+            color: var(--text-light);
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification.success {
+            background-color: var(--success-color);
+        }
+
+        .notification.error {
+            background-color: var(--error-color);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background-color: var(--primary-color);
+                padding: 1rem;
+                box-shadow: var(--shadow);
+            }
+
+            nav ul.show {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .messages-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 200px 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Navigation -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <i class="fas fa-heart"></i>
+                <h1>WCU Dating</h1>
+            </div>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="#home" class="nav-link active" data-section="home">Home</a></li>
+                    <li><a href="#login" class="nav-link" data-section="login" id="loginNav">Login</a></li>
+                    <li><a href="#signup" class="nav-link" data-section="signup" id="signupNav">Sign Up</a></li>
+                    <li><a href="#dashboard" class="nav-link" data-section="dashboard" id="dashboardNav" style="display:none;">Dashboard</a></li>
+                    <li><a href="#browse" class="nav-link" data-section="browse" id="browseNav" style="display:none;">Browse</a></li>
+                    <li><a href="#messages" class="nav-link" data-section="messages" id="messagesNav" style="display:none;">Messages</a></li>
+                    <li><a href="#profile" class="nav-link" data-section="profile" id="profileNav" style="display:none;">Profile</a></li>
+                    <li><a href="#about" class="nav-link" data-section="about">About Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <h2>Only for WCU Students <i class="fas fa-heart"></i></h2>
+                <p>Connect with fellow Wachemo University students, make friends, and build meaningful relationships in a safe and secure environment.</p>
+                <div class="cta-buttons">
+                    <a href="#login" class="btn" data-section="login">Login</a>
+                    <a href="#signup" class="btn btn-outline" data-section="signup">Sign Up</a>
+                </div>
+            </div>
+            
+            <div class="features">
+                <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-color);">How It Works</h2>
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <div class="card-img">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Create Profile</h3>
+                            <p>Sign up with your WCU student details and create your dating profile.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-img">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Browse Students</h3>
+                            <p>Find other WCU students based on department, interests, and more.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-img">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">Connect & Chat</h3>
+                            <p>Start conversations and build meaningful connections.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login" class="section">
+            <div class="form-container">
+                <h2 class="form-title">Login to Your Account</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <span id="loginBtnText">Login</span>
+                        <div id="loginSpinner" class="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+                <p style="text-align: center; margin-top: 1.5rem;">
+                    Don't have an account? <a href="#signup" class="nav-link" data-section="signup" style="color: var(--primary-color);">Sign Up now</a>
+                </p>
+            </div>
+        </section>
+
+        <!-- Sign Up Section -->
+        <section id="signup" class="section">
+            <div class="form-container">
+                <h2 class="form-title">Create Your WCU Dating Profile</h2>
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" class="form-control" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentId">Student ID</label>
+                        <input type="text" id="studentId" class="form-control" placeholder="Enter your WCU student ID" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department / Faculty</label>
+                        <select id="department" class="form-control" required>
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Systems">Information Systems</option>
+                            <option value="Engineering and Technology">Engineering and Technology</option>
+                            <option value="Medicine">Medicine</option>
+                            <option value="Law">Law</option>
+                            <option value="Business">Business</option>
+                            <option value="Education">Education</option>
+                            <option value="Agriculture">Agriculture</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year of Study</label>
+                        <select id="year" class="form-control" required>
+                            <option value="">Select Year</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                            <option value="5th">5th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" class="form-control" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lookingFor">Looking For</label>
+                        <select id="lookingFor" class="form-control" required>
+                            <option value="">Select What You're Looking For</option>
+                            <option value="Friendship">Friendship</option>
+                            <option value="Relationship">Relationship</option>
+                            <option value="Study Partner">Study Partner</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maritalStatus">Marital Status</label>
+                        <select id="maritalStatus" class="form-control" required>
+                            <option value="">Select Marital Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="relationshipExp">Past Relationship Experience</label>
+                        <select id="relationshipExp" class="form-control" required>
+                            <option value="">Select Experience</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="religion">Religion</label>
+                        <select id="religion" class="form-control" required>
+                            <option value="">Select Religion</option>
+                            <option value="Ethiopian Orthodox">Ethiopian Orthodox</option>
+                            <option value="Protestant">Protestant</option>
+                            <option value="Catholic">Catholic</option>
+                            <option value="Islam">Islam</option>
+                            <option value="Judaism">Judaism</option>
+                            <option value="Traditional/Indigenous">Traditional/Indigenous</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="personality">Personality Type</label>
+                        <select id="personality" class="form-control" required>
+                            <option value="">Select Personality Type</option>
+                            <option value="Introvert">Introvert</option>
+                            <option value="Extrovert">Extrovert</option>
+                            <option value="Ambivert">Ambivert</option>
+                            <option value="Not sure">Not sure</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">About Me / Bio</label>
+                        <textarea id="bio" class="form-control" placeholder="Tell others about yourself..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="profilePhoto">Profile Photo</label>
+                        <input type="file" id="profilePhoto" class="form-control" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" class="form-control" placeholder="Enter your phone number">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Create a password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <span id="signupBtnText">Register</span>
+                        <div id="signupSpinner" class="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section">
+            <div class="dashboard-header">
+                <div class="profile-img-container">
+                    <img id="dashboardProfileImg" class="profile-img" src="" alt="Profile Image" onerror="this.style.display='none';">
+                    <div id="dashboardProfilePlaceholder" class="profile-img" style="background-color: #e1bee7; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user" style="font-size: 2.5rem; color: var(--primary-color);"></i>
+                    </div>
+                </div>
+                <div>
+                    <h2 id="dashboardWelcome">Welcome, Student!</h2>
+                    <p id="dashboardDetails">Department, Year</p>
+                    <p id="dashboardBio">"Bio will appear here."</p>
+                </div>
+            </div>
+
+            <div class="dashboard-cards">
+                <a href="#browse" class="card nav-link" data-section="browse">
+                    <div class="card-img">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Browse Students</h3>
+                        <p>Find other WCU students to connect with</p>
+                    </div>
+                </a>
+                <a href="#messages" class="card nav-link" data-section="messages">
+                    <div class="card-img">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Messages</h3>
+                        <p>Check your conversations</p>
+                    </div>
+                </a>
+                <a href="#profile" class="card nav-link" data-section="profile">
+                    <div class="card-img">
+                        <i class="fas fa-user-edit"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">My Profile</h3>
+                        <p>View and edit your profile</p>
+                    </div>
+                </a>
+                <a href="#home" class="card nav-link" data-section="home" id="logoutBtn">
+                    <div class="card-img">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Logout</h3>
+                        <p>Sign out of your account</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Browse Students Section -->
+        <section id="browse" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">Browse WCU Students</h2>
+            
+            <div class="filters">
+                <h3 style="margin-bottom: 1rem;">Filters</h3>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="filterDepartment">Department</label>
+                        <select id="filterDepartment" class="form-control">
+                            <option value="">All Departments</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Systems">Information Systems</option>
+                            <option value="Engineering and Technology">Engineering and Technology</option>
+                            <option value="Medicine">Medicine</option>
+                            <option value="Law">Law</option>
+                            <option value="Business">Business</option>
+                            <option value="Education">Education</option>
+                            <option value="Agriculture">Agriculture</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterYear">Year</label>
+                        <select id="filterYear" class="form-control">
+                            <option value="">All Years</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                            <option value="5th">5th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterGender">Gender</label>
+                        <select id="filterGender" class="form-control">
+                            <option value="">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="form-group">
+                        <label for="filterReligion">Religion</label>
+                        <select id="filterReligion" class="form-control">
+                            <option value="">All Religions</option>
+                            <option value="Ethiopian Orthodox">Ethiopian Orthodox</option>
+                            <option value="Protestant">Protestant</option>
+                            <option value="Catholic">Catholic</option>
+                            <option value="Islam">Islam</option>
+                            <option value="Judaism">Judaism</option>
+                            <option value="Traditional/Indigenous">Traditional/Indigenous</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterPersonality">Personality</label>
+                        <select id="filterPersonality" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="Introvert">Introvert</option>
+                            <option value="Extrovert">Extrovert</option>
+                            <option value="Ambivert">Ambivert</option>
+                            <option value="Not sure">Not sure</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterLookingFor">Looking For</label>
+                        <select id="filterLookingFor" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="Friendship">Friendship</option>
+                            <option value="Relationship">Relationship</option>
+                            <option value="Study Partner">Study Partner</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn" id="applyFilters">Apply Filters</button>
+            </div>
+
+            <div id="studentsContainer" class="student-cards">
+                <div class="spinner" id="browseSpinner"></div>
+            </div>
+        </section>
+
+        <!-- Messages Section -->
+        <section id="messages" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">Messages</h2>
+            
+            <div class="messages-container">
+                <div class="conversations-list" id="conversationsList">
+                    <div class="spinner"></div>
+                </div>
+                
+                <div class="chat-window">
+                    <div class="chat-header" id="chatHeader">
+                        Select a conversation
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <p style="text-align: center; color: #666; padding: 2rem;">Select a conversation to start messaging</p>
+                    </div>
+                    <div class="chat-input" style="display: none;" id="chatInput">
+                        <input type="text" id="messageInput" placeholder="Type your message here...">
+                        <button class="btn" id="sendMessageBtn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="section">
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">My Profile</h2>
+            
+            <div class="form-container">
+                <form id="profileForm">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <img id="profilePhotoPreview" class="profile-img" src="" alt="Profile Photo" onerror="this.style.display='none';" style="width: 150px; height: 150px; margin: 0 auto;">
+                        <div id="profilePhotoPlaceholder" class="profile-img" style="width: 150px; height: 150px; margin: 0 auto; background-color: #e1bee7; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user" style="font-size: 4rem; color: var(--primary-color);"></i>
+                        </div>
+                        <input type="file" id="profilePhotoUpload" accept="image/*" style="display: none;">
+                        <button type="button" class="btn" style="margin-top: 1rem;" id="changePhotoBtn">Change Photo</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profileName">Full Name</label>
+                        <input type="text" id="profileName" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileStudentId">Student ID</label>
+                        <input type="text" id="profileStudentId" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileDepartment">Department / Faculty</label>
+                        <select id="profileDepartment" class="form-control">
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Systems">Information Systems</option>
+                            <option value="Engineering and Technology">Engineering and Technology</option>
+                            <option value="Medicine">Medicine</option>
+                            <option value="Law">Law</option>
+                            <option value="Business">Business</option>
+                            <option value="Education">Education</option>
+                            <option value="Agriculture">Agriculture</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileYear">Year of Study</label>
+                        <select id="profileYear" class="form-control">
+                            <option value="">Select Year</option>
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                            <option value="5th">5th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileBio">About Me / Bio</label>
+                        <textarea id="profileBio" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%;">
+                        <span id="updateProfileBtnText">Update Profile</span>
+                        <div id="updateProfileSpinner" class="spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="section">
+            <div class="form-container">
+                <h2 class="form-title">About WCU Dating</h2>
+                <p style="text-align: center; margin-bottom: 2rem;">
+                    This site is specially built for WCU students to connect, make friends, and build meaningful relationships.
+                </p>
+                
+                <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: var(--border-radius);">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Developer Information</h3>
+                    <p><strong>Developed by:</strong> Yoseph Abebe Ersedo</p>
+                    <p><strong>University:</strong> Wachemo University</p>
+                    <p><strong>Department:</strong> Information Systems</p>
+                    <p><strong>Year:</strong> 2025</p>
+                    <p><strong>Email:</strong> jossyabebe92@gmail.com</p>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Mission</h3>
+                    <p>Our mission is to provide a safe and secure platform for Wachemo University students to connect with each other, form study groups, make new friends, and build meaningful relationships within the university community.</p>
+                    
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem; margin-top: 1.5rem;">Privacy & Safety</h3>
+                    <p>We prioritize your privacy and safety. All profiles are verified through WCU student IDs, and we have strict guidelines against inappropriate behavior. Your personal information is never shared with third parties.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 Wachemo University Dating Site. All rights reserved.</p>
+            <p>For WCU students only. Verification required.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Firebase configuration - Replace with your actual Firebase config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation functionality
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.section');
+            const menuToggle = document.getElementById('menuToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            // Authentication state observer
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    showAuthenticatedNav();
+                    loadUserProfile(user.uid);
+                } else {
+                    // User is signed out
+                    showUnauthenticatedNav();
+                    showSection('home');
+                }
+            });
+            
+            // Handle navigation clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Handle logout button
+                    if (this.id === 'logoutBtn') {
+                        auth.signOut().then(() => {
+                            showNotification('Logged out successfully', 'success');
+                        }).catch((error) => {
+                            showNotification('Error signing out: ' + error.message, 'error');
+                        });
+                        return;
+                    }
+                    
+                    const sectionId = this.getAttribute('data-section');
+                    showSection(sectionId);
+                    updateActiveNav(this);
+                    
+                    // Close mobile menu after selection
+                    if (window.innerWidth <= 768) {
+                        navMenu.classList.remove('show');
+                    }
+                });
+            });
+            
+            // Mobile menu toggle
+            menuToggle.addEventListener('click', function() {
+                navMenu.classList.toggle('show');
+            });
+            
+            // Show the specified section and hide others
+            function showSection(sectionId) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(sectionId).classList.add('active');
+                
+                // Load section-specific data
+                if (sectionId === 'browse') {
+                    loadStudents();
+                } else if (sectionId === 'messages') {
+                    loadConversations();
+                }
+            }
+            
+            // Update active navigation link
+            function updateActiveNav(activeLink) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                activeLink.classList.add('active');
+            }
+            
+            // Show navigation for authenticated users
+            function showAuthenticatedNav() {
+                document.getElementById('loginNav').style.display = 'none';
+                document.getElementById('signupNav').style.display = 'none';
+                document.getElementById('dashboardNav').style.display = 'list-item';
+                document.getElementById('browseNav').style.display = 'list-item';
+                document.getElementById('messagesNav').style.display = 'list-item';
+                document.getElementById('profileNav').style.display = 'list-item';
+            }
+            
+            // Show navigation for unauthenticated users
+            function showUnauthenticatedNav() {
+                document.getElementById('loginNav').style.display = 'list-item';
+                document.getElementById('signupNav').style.display = 'list-item';
+                document.getElementById('dashboardNav').style.display = 'none';
+                document.getElementById('browseNav').style.display = 'none';
+                document.getElementById('messagesNav').style.display = 'none';
+                document.getElementById('profileNav').style.display = 'none';
+            }
+            
+            // Show notification
+            function showNotification(message, type) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Toggle button loading state
+            function toggleButtonLoading(buttonId, spinnerId, textId, isLoading) {
+                const button = document.getElementById(buttonId);
+                const spinner = document.getElementById(spinnerId);
+                const text = document.getElementById(textId);
+                
+                if (isLoading) {
+                    button.disabled = true;
+                    spinner.style.display = 'inline-block';
+                    text.style.display = 'none';
+                } else {
+                    button.disabled = false;
+                    spinner.style.display = 'none';
+                    text.style.display = 'inline';
+                }
+            }
+            
+            // Load user profile
+            function loadUserProfile(userId) {
+                db.collection('users').doc(userId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        
+                        // Update dashboard
+                        document.getElementById('dashboardWelcome').textContent = `Welcome, ${userData.fullName}!`;
+                        document.getElementById('dashboardDetails').textContent = `${userData.department}, ${userData.year}`;
+                        document.getElementById('dashboardBio').textContent = `"${userData.bio}"`;
+                        
+                        if (userData.profilePhoto) {
+                            document.getElementById('dashboardProfileImg').src = userData.profilePhoto;
+                            document.getElementById('dashboardProfileImg').style.display = 'block';
+                            document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
+                        }
+                        
+                        // Update profile form
+                        document.getElementById('profileName').value = userData.fullName;
+                        document.getElementById('profileStudentId').value = userData.studentId;
+                        document.getElementById('profileDepartment').value = userData.department;
+                        document.getElementById('profileYear').value = userData.year;
+                        document.getElementById('profileBio').value = userData.bio;
+                        
+                        if (userData.profilePhoto) {
+                            document.getElementById('profilePhotoPreview').src = userData.profilePhoto;
+                            document.getElementById('profilePhotoPreview').style.display = 'block';
+                            document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading user profile:', error);
+                });
+            }
+            
+            // Load students for browsing
+            function loadStudents(filters = {}) {
+                const studentsContainer = document.getElementById('studentsContainer');
+                studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
+                
+                let query = db.collection('users');
+                
+                // Apply filters
+                if (filters.department) {
+                    query = query.where('department', '==', filters.department);
+                }
+                if (filters.year) {
+                    query = query.where('year', '==', filters.year);
+                }
+                if (filters.gender) {
+                    query = query.where('gender', '==', filters.gender);
+                }
+                if (filters.religion) {
+                    query = query.where('religion', '==', filters.religion);
+                }
+                if (filters.personality) {
+                    query = query.where('personality', '==', filters.personality);
+                }
+                if (filters.lookingFor) {
+                    query = query.where('lookingFor', '==', filters.lookingFor);
+                }
+                
+                query.get()
+                .then((querySnapshot) => {
+                    studentsContainer.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        studentsContainer.innerHTML = '<p style="text-align: center; width: 100%; padding: 2rem;">No students found matching your criteria.</p>';
+                        return;
+                    }
+                    
+                    const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
+                    
+                    querySnapshot.forEach((doc) => {
+                        // Don't show current user in browse results
+                        if (doc.id === currentUserId) return;
+                        
+                        const student = doc.data();
+                        const studentCard = document.createElement('div');
+                        studentCard.className = 'student-card';
+                        studentCard.innerHTML = `
+                            <div class="student-img">
+                                ${student.profilePhoto ? 
+                                    `<img src="${student.profilePhoto}" alt="${student.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                                    `<i class="fas fa-user"></i>`
+                                }
+                            </div>
+                            <div class="student-info">
+                                <h3 class="student-name">${student.fullName}</h3>
+                                <p class="student-details">${student.department}, ${student.year}</p>
+                                <p class="student-bio">${student.bio}</p>
+                                <button class="btn message-student-btn" style="width: 100%; margin-top: 1rem;" data-id="${doc.id}">Message</button>
+                            </div>
+                        `;
+                        
+                        studentsContainer.appendChild(studentCard);
+                    });
+                    
+                    // Add event listeners to message buttons
+                    document.querySelectorAll('.message-student-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const userId = this.getAttribute('data-id');
+                            showSection('messages');
+                            // Here you would typically open a chat with this user
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error loading students:', error);
+                    studentsContainer.innerHTML = '<p style="text-align: center; width: 100%; padding: 2rem; color: var(--error-color);">Error loading students. Please try again.</p>';
+                });
+            }
+            
+            // Load conversations for messages section
+            function loadConversations() {
+                const conversationsList = document.getElementById('conversationsList');
+                conversationsList.innerHTML = '<div class="spinner"></div>';
+                
+                // This is a simplified implementation
+                // In a real app, you would query Firestore for the user's conversations
+                
+                setTimeout(() => {
+                    conversationsList.innerHTML = `
+                        <p style="text-align: center; padding: 2rem; color: #666;">
+                            Messaging feature coming soon!
+                        </p>
+                    `;
+                }, 1000);
+            }
+            
+            // Form submissions
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const profileForm = document.getElementById('profileForm');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('loginEmail').value;
+                    const password = document.getElementById('loginPassword').value;
+                    
+                    toggleButtonLoading('loginForm', 'loginSpinner', 'loginBtnText', true);
+                    
+                    auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        showNotification('Login successful!', 'success');
+                        showSection('dashboard');
+                        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+                    })
+                    .catch((error) => {
+                        showNotification('Login error: ' + error.message, 'error');
+                    })
+                    .finally(() => {
+                        toggleButtonLoading('loginForm', 'loginSpinner', 'loginBtnText', false);
+                    });
+                });
+            }
+            
+            if (signupForm) {
+                signupForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    
+                    if (password !== confirmPassword) {
+                        showNotification('Passwords do not match', 'error');
+                        return;
+                    }
+                    
+                    toggleButtonLoading('signupForm', 'signupSpinner', 'signupBtnText', true);
+                    
+                    // Create user with email and password
+                    auth.createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+                        
+                        // Prepare user data
+                        const userData = {
+                            uid: user.uid,
+                            email: email,
+                            fullName: document.getElementById('fullName').value,
+                            studentId: document.getElementById('studentId').value,
+                            department: document.getElementById('department').value,
+                            year: document.getElementById('year').value,
+                            gender: document.getElementById('gender').value,
+                            lookingFor: document.getElementById('lookingFor').value,
+                            maritalStatus: document.getElementById('maritalStatus').value,
+                            relationshipExp: document.getElementById('relationshipExp').value,
+                            religion: document.getElementById('religion').value,
+                            personality: document.getElementById('personality').value,
+                            bio: document.getElementById('bio').value,
+                            phone: document.getElementById('phone').value,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        // Handle profile photo upload if exists
+                        const profilePhoto = document.getElementById('profilePhoto').files[0];
+                        if (profilePhoto) {
+                            const storageRef = storage.ref(`profile_photos/${user.uid}`);
+                            return storageRef.put(profilePhoto)
+                            .then(snapshot => snapshot.ref.getDownloadURL())
+                            .then(url => {
+                                userData.profilePhoto = url;
+                                return db.collection('users').doc(user.uid).set(userData);
+                            });
+                        } else {
+                            return db.collection('users').doc(user.uid).set(userData);
+                        }
+                    })
+                    .then(() => {
+                        showNotification('Registration successful!', 'success');
+                        showSection('dashboard');
+                        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+                    })
+                    .catch((error) => {
+                        showNotification('Registration error: ' + error.message, 'error');
+                    })
+                    .finally(() => {
+                        toggleButtonLoading('signupForm', 'signupSpinner', 'signupBtnText', false);
+                    });
+                });
+            }
+            
+            if (profileForm) {
+                profileForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const userId = auth.currentUser.uid;
+                    const userData = {
+                        fullName: document.getElementById('profileName').value,
+                        department: document.getElementById('profileDepartment').value,
+                        year: document.getElementById('profileYear').value,
+                        bio: document.getElementById('profileBio').value,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    toggleButtonLoading('profileForm', 'updateProfileSpinner', 'updateProfileBtnText', true);
+                    
+                    // Handle profile photo upload if changed
+                    const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
+                    if (profilePhoto) {
+                        const storageRef = storage.ref(`profile_photos/${userId}`);
+                        storageRef.put(profilePhoto)
+                        .then(snapshot => snapshot.ref.getDownloadURL())
+                        .then(url => {
+                            userData.profilePhoto = url;
+                            return db.collection('users').doc(userId).update(userData);
+                        })
+                        .then(() => {
+                            showNotification('Profile updated successfully!', 'success');
+                            loadUserProfile(userId); // Reload profile data
+                        })
+                        .catch((error) => {
+                            showNotification('Error updating profile: ' + error.message, 'error');
+                        })
+                        .finally(() => {
+                            toggleButtonLoading('profileForm', 'updateProfileSpinner', 'updateProfileBtnText', false);
+                        });
+                    } else {
+                        db.collection('users').doc(userId).update(userData)
+                        .then(() => {
+                            showNotification('Profile updated successfully!', 'success');
+                            loadUserProfile(userId); // Reload profile data
+                        })
+                        .catch((error) => {
+                            showNotification('Error updating profile: ' + error.message, 'error');
+                        })
+                        .finally(() => {
+                            toggleButtonLoading('profileForm', 'updateProfileSpinner', 'updateProfileBtnText', false);
+                        });
+                    }
+                });
+            }
+            
+            // Apply filters button
+            document.getElementById('applyFilters').addEventListener('click', function() {
+                const filters = {
+                    department: document.getElementById('filterDepartment').value,
+                    year: document.getElementById('filterYear').value,
+                    gender: document.getElementById('filterGender').value,
+                    religion: document.getElementById('filterReligion').value,
+                    personality: document.getElementById('filterPersonality').value,
+                    lookingFor: document.getElementById('filterLookingFor').value
+                };
+                
+                loadStudents(filters);
+            });
+            
+            // Change profile photo button
+            document.getElementById('changePhotoBtn').addEventListener('click', function() {
+                document.getElementById('profilePhotoUpload').click();
+            });
+            
+            document.getElementById('profilePhotoUpload').addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('profilePhotoPreview').src = e.target.result;
+                        document.getElementById('profilePhotoPreview').style.display = 'block';
+                        document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Simulate conversation clicks
+            const conversations = document.querySelectorAll('.conversation');
+            conversations.forEach(conv => {
+                conv.addEventListener('click', function() {
+                    conversations.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
