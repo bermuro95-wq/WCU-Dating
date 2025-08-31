@@ -24,6 +24,7 @@
             --transition: all 0.3s ease;
             --success-color: #4caf50;
             --error-color: #f44336;
+            --warning-color: #ff9800;
         }
 
         * {
@@ -234,6 +235,11 @@
             color: white;
         }
 
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
         /* Dashboard */
         .dashboard-header {
             display: flex;
@@ -303,6 +309,28 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-toggle {
+            display: none;
+            background: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .filter-content {
+            display: block;
         }
 
         .filter-row {
@@ -310,6 +338,32 @@
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 1rem;
             margin-bottom: 1rem;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .filter-tag {
+            background-color: var(--primary-light);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
         }
 
         .student-cards {
@@ -324,6 +378,7 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: var(--transition);
+            position: relative;
         }
 
         .student-card:hover {
@@ -336,11 +391,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         .student-img i {
             font-size: 5rem;
             color: var(--primary-color);
+        }
+
+        .student-online {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            border: 2px solid white;
         }
 
         .student-info {
@@ -350,12 +417,30 @@
         .student-name {
             color: var(--primary-color);
             margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .student-details {
             color: #666;
             margin-bottom: 1rem;
             font-size: 0.9rem;
+        }
+
+        .student-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .interest-tag {
+            background-color: var(--accent-color);
+            color: var(--primary-dark);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
         }
 
         /* Messages */
@@ -395,10 +480,45 @@
             align-items: center;
             justify-content: center;
             margin-right: 1rem;
+            position: relative;
         }
 
         .conversation-img i {
             color: var(--primary-color);
+        }
+
+        .conversation-online {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-name {
+            font-weight: 500;
+        }
+
+        .conversation-preview {
+            font-size: 0.875rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .conversation-time {
+            font-size: 0.75rem;
+            color: #999;
+            text-align: right;
         }
 
         .chat-window {
@@ -413,6 +533,21 @@
             padding: 1rem;
             border-bottom: 1px solid #eee;
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-user-status {
+            font-size: 0.875rem;
+            color: #666;
+            font-weight: normal;
         }
 
         .chat-messages {
@@ -428,6 +563,7 @@
             max-width: 70%;
             padding: 0.75rem;
             border-radius: var(--border-radius);
+            position: relative;
         }
 
         .message.received {
@@ -439,6 +575,13 @@
             background-color: var(--primary-light);
             color: white;
             align-self: flex-end;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            opacity: 0.7;
+            text-align: right;
         }
 
         .chat-input {
@@ -457,6 +600,87 @@
 
         .chat-input button {
             border-radius: 0 var(--border-radius) var(--border-radius) 0;
+        }
+
+        /* Profile Section */
+        .profile-view {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .profile-header {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(to right, var(--primary-dark), var(--primary-color));
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 2rem;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            bottom: -75px;
+        }
+
+        .profile-avatar i {
+            font-size: 4rem;
+            color: var(--primary-color);
+        }
+
+        .profile-body {
+            margin-top: 80px;
+            padding: 2rem;
+        }
+
+        .profile-name {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-details {
+            text-align: center;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+
+        .profile-section-title {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .profile-info-item {
+            margin-bottom: 1rem;
+        }
+
+        .profile-info-label {
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 0.25rem;
         }
 
         /* Footer */
@@ -484,6 +708,8 @@
             opacity: 0;
             transform: translateY(-20px);
             transition: opacity 0.3s, transform 0.3s;
+            max-width: 350px;
+            box-shadow: var(--shadow);
         }
 
         .notification.show {
@@ -497,6 +723,10 @@
 
         .notification.error {
             background-color: var(--error-color);
+        }
+
+        .notification.warning {
+            background-color: var(--warning-color);
         }
 
         /* Loading Spinner */
@@ -513,6 +743,19 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 1rem;
         }
 
         /* Responsive Design */
@@ -550,6 +793,52 @@
             .cta-buttons {
                 flex-direction: column;
             }
+
+            .filter-toggle {
+                display: block;
+            }
+
+            .filter-content {
+                display: none;
+                margin-top: 1rem;
+            }
+
+            .filter-content.show {
+                display: block;
+            }
+
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header {
+                height: 150px;
+            }
+
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                bottom: -60px;
+            }
+
+            .profile-avatar i {
+                font-size: 3rem;
+            }
+
+            .profile-body {
+                margin-top: 70px;
+                padding: 1.5rem;
+            }
+        }
+
+        /* Animation for new messages */
+        @keyframes highlight {
+            0% { background-color: rgba(106, 27, 154, 0.1); }
+            100% { background-color: transparent; }
+        }
+
+        .highlight {
+            animation: highlight 2s ease;
         }
     </style>
 </head>
@@ -783,6 +1072,10 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="interests">Interests (comma separated)</label>
+                        <input type="text" id="interests" class="form-control" placeholder="e.g., Reading, Sports, Music">
+                    </div>
+                    <div class="form-group">
                         <label for="bio">About Me / Bio</label>
                         <textarea id="bio" class="form-control" placeholder="Tell others about yourself..." required></textarea>
                     </div>
@@ -875,107 +1168,136 @@
             <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">Browse WCU Students</h2>
             
             <div class="filters">
-                <h3 style="margin-bottom: 1rem;">Filters</h3>
-                <div class="filter-row">
-                    <div class="form-group">
-                        <label for="filterDepartment">Department</label>
-                        <select id="filterDepartment" class="form-control">
-                            <option value="">All Departments</option>
-                            <option value="Civil Engineering">Civil Engineering</option>
-                            <option value="Hydraulic and Water Resource Engineering">Hydraulic and Water Resource Engineering</option>
-                            <option value="Architecture">Architecture</option>
-                            <option value="Chemical Engineering">Chemical Engineering</option>
-                            <option value="Construction Technology and Management">Construction Technology and Management</option>
-                            <option value="Electrical and Computer Engineering">Electrical and Computer Engineering</option>
-                            <option value="Electro-Mechanical Engineering">Electro-Mechanical Engineering</option>
-                            <option value="Surveying Engineering">Surveying Engineering</option>
-                            <option value="Information Systems">Information Systems</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Mechanical Engineering">Mechanical Engineering</option>
-                            <option value="Software Engineering">Software Engineering</option>
-                            <option value="Biomedical Engineering">Biomedical Engineering</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="Statistics">Statistics</option>
-                            <option value="Physics">Physics</option>
-                            <option value="Chemistry">Chemistry</option>
-                            <option value="Biology">Biology</option>
-                            <option value="Biotechnology">Biotechnology</option>
-                            <option value="Geology">Geology</option>
-                            <option value="Sport Science">Sport Science</option>
-                            <option value="Industrial Chemistry">Industrial Chemistry</option>
-                            <option value="Medicine">Medicine</option>
-                            <option value="Anesthesia">Anesthesia</option>
-                            <option value="Midwifery">Midwifery</option>
-                            <option value="Comprehensive Nursing">Comprehensive Nursing</option>
-                            <option value="Public Health">Public Health</option>
-                            <option value="Health Informatics">Health Informatics</option>
-                            <option value="Medical Laboratory Technology">Medical Laboratory Technology</option>
-                            <option value="Pharmacy">Pharmacy</option>
-                            <option value="Surgical Nursing (Post Basic)">Surgical Nursing (Post Basic)</option>
-                            <option value="Pediatrics & Child Health Nursing (Post Basic)">Pediatrics & Child Health Nursing (Post Basic)</option>
-                            <option value="Dental Medicine">Dental Medicine</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filterYear">Year</label>
-                        <select id="filterYear" class="form-control">
-                            <option value="">All Years</option>
-                            <option value="Remedial">Remedial</option>
-                            <option value="1st">1st Year</option>
-                            <option value="2nd">2nd Year</option>
-                            <option value="3rd">3rd Year</option>
-                            <option value="4th">4th Year</option>
-                            <option value="5th">5th Year</option>
-                            <option value="6th">6th Year</option>
-                            <option value="7th">7th Year</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filterGender">Gender</label>
-                        <select id="filterGender" class="form-control">
-                            <option value="">All Genders</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
+                <div class="filter-header">
+                    <h3>Filters</h3>
+                    <button class="filter-toggle" id="filterToggle">
+                        <i class="fas fa-filter"></i> Filters
+                    </button>
                 </div>
-                <div class="filter-row">
-                    <div class="form-group">
-                        <label for="filterReligion">Religion</label>
-                        <select id="filterReligion" class="form-control">
-                            <option value="">All Religions</option>
-                            <option value="Ethiopian Orthodox">Ethiopian Orthodox</option>
-                            <option value="Protestant">Protestant</option>
-                            <option value="Catholic">Catholic</option>
-                            <option value="Islam">Islam</option>
-                            <option value="Judaism">Judaism</option>
-                            <option value="Traditional/Indigenous">Traditional/Indigenous</option>
-                            <option value="Other">Other</option>
-                        </select>
+                
+                <div class="filter-content" id="filterContent">
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="filterDepartment">Department</label>
+                            <select id="filterDepartment" class="form-control">
+                                <option value="">All Departments</option>
+                                <option value="Civil Engineering">Civil Engineering</option>
+                                <option value="Hydraulic and Water Resource Engineering">Hydraulic and Water Resource Engineering</option>
+                                <option value="Architecture">Architecture</option>
+                                <option value="Chemical Engineering">Chemical Engineering</option>
+                                <option value="Construction Technology and Management">Construction Technology and Management</option>
+                                <option value="Electrical and Computer Engineering">Electrical and Computer Engineering</option>
+                                <option value="Electro-Mechanical Engineering">Electro-Mechanical Engineering</option>
+                                <option value="Surveying Engineering">Surveying Engineering</option>
+                                <option value="Information Systems">Information Systems</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                <option value="Software Engineering">Software Engineering</option>
+                                <option value="Biomedical Engineering">Biomedical Engineering</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Statistics">Statistics</option>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Biotechnology">Biotechnology</option>
+                                <option value="Geology">Geology</option>
+                                <option value="Sport Science">Sport Science</option>
+                                <option value="Industrial Chemistry">Industrial Chemistry</option>
+                                <option value="Medicine">Medicine</option>
+                                <option value="Anesthesia">Anesthesia</option>
+                                <option value="Midwifery">Midwifery</option>
+                                <option value="Comprehensive Nursing">Comprehensive Nursing</option>
+                                <option value="Public Health">Public Health</option>
+                                <option value="Health Informatics">Health Informatics</option>
+                                <option value="Medical Laboratory Technology">Medical Laboratory Technology</option>
+                                <option value="Pharmacy">Pharmacy</option>
+                                <option value="Surgical Nursing (Post Basic)">Surgical Nursing (Post Basic)</option>
+                                <option value="Pediatrics & Child Health Nursing (Post Basic)">Pediatrics & Child Health Nursing (Post Basic)</option>
+                                <option value="Dental Medicine">Dental Medicine</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterYear">Year</label>
+                            <select id="filterYear" class="form-control">
+                                <option value="">All Years</option>
+                                <option value="Remedial">Remedial</option>
+                                <option value="1st">1st Year</option>
+                                <option value="2nd">2nd Year</option>
+                                <option value="3rd">3rd Year</option>
+                                <option value="4th">4th Year</option>
+                                <option value="5th">5th Year</option>
+                                <option value="6th">6th Year</option>
+                                <option value="7th">7th Year</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterGender">Gender</label>
+                            <select id="filterGender" class="form-control">
+                                <option value="">All Genders</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="filterPersonality">Personality</label>
-                        <select id="filterPersonality" class="form-control">
-                            <option value="">All Types</option>
-                            <option value="Introvert">Introvert</option>
-                            <option value="Extrovert">Extrovert</option>
-                            <option value="Ambivert">Ambivert</option>
-                            <option value="Not sure">Not sure</option>
-                        </select>
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="filterReligion">Religion</label>
+                            <select id="filterReligion" class="form-control">
+                                <option value="">All Religions</option>
+                                <option value="Ethiopian Orthodox">Ethiopian Orthodox</option>
+                                <option value="Protestant">Protestant</option>
+                                <option value="Catholic">Catholic</option>
+                                <option value="Islam">Islam</option>
+                                <option value="Judaism">Judaism</option>
+                                <option value="Traditional/Indigenous">Traditional/Indigenous</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterPersonality">Personality</label>
+                            <select id="filterPersonality" class="form-control">
+                                <option value="">All Types</option>
+                                <option value="Introvert">Introvert</option>
+                                <option value="Extrovert">Extrovert</option>
+                                <option value="Ambivert">Ambivert</option>
+                                <option value="Not sure">Not sure</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="filterLookingFor">Looking For</label>
+                            <select id="filterLookingFor" class="form-control">
+                                <option value="">All Types</option>
+                                <option value="Friendship">Friendship</option>
+                                <option value="Relationship">Relationship</option>
+                                <option value="Study Partner">Study Partner</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="filterLookingFor">Looking For</label>
-                        <select id="filterLookingFor" class="form-control">
-                            <option value="">All Types</option>
-                            <option value="Friendship">Friendship</option>
-                            <option value="Relationship">Relationship</option>
-                            <option value="Study Partner">Study Partner</option>
-                            <option value="Other">Other</option>
-                        </select>
+                    <div class="filter-row">
+                        <div class="form-group">
+                            <label for="filterInterests">Interests</label>
+                            <input type="text" id="filterInterests" class="form-control" placeholder="e.g., Music, Sports">
+                        </div>
+                        <div class="form-group">
+                            <label for="filterMaritalStatus">Marital Status</label>
+                            <select id="filterMaritalStatus" class="form-control">
+                                <option value="">All Statuses</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                            </select>
+                        </div>
                     </div>
+                    <button type="button" class="btn" id="applyFilters">Apply Filters</button>
+                    <button type="button" class="btn btn-outline" id="clearFilters" style="margin-left: 10px;">Clear Filters</button>
                 </div>
-                <button type="button" class="btn" id="applyFilters">Apply Filters</button>
+
+                <div class="filter-tags" id="filterTags" style="display: none;">
+                    <!-- Active filters will appear here -->
+                </div>
             </div>
 
             <div id="studentsContainer" class="student-cards">
@@ -994,7 +1316,10 @@
                 
                 <div class="chat-window">
                     <div class="chat-header" id="chatHeader">
-                        Select a conversation
+                        <div class="chat-user-info">
+                            <span>Select a conversation</span>
+                            <span class="chat-user-status"></span>
+                        </div>
                     </div>
                     <div class="chat-messages" id="chatMessages">
                         <p style="text-align: center; color: #666; padding: 2rem;">Select a conversation to start messaging</p>
@@ -1084,6 +1409,10 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="profileInterests">Interests (comma separated)</label>
+                        <input type="text" id="profileInterests" class="form-control" placeholder="e.g., Reading, Sports, Music">
+                    </div>
+                    <div class="form-group">
                         <label for="profileBio">About Me / Bio</label>
                         <textarea id="profileBio" class="form-control"></textarea>
                     </div>
@@ -1153,6 +1482,7 @@
         let currentUser = null;
         let userProfile = null;
         let unsubscribeChat = null;
+        let activeFilters = {};
 
         // Navigation functionality
         const navLinks = document.querySelectorAll('.nav-link');
@@ -1303,6 +1633,7 @@
             const relationshipExp = document.getElementById('relationshipExp').value;
             const religion = document.getElementById('religion').value;
             const personality = document.getElementById('personality').value;
+            const interests = document.getElementById('interests').value;
             const bio = document.getElementById('bio').value;
             const phone = document.getElementById('phone').value;
             const profilePhoto = document.getElementById('profilePhoto').files[0];
@@ -1343,9 +1674,12 @@
                     relationshipExp: relationshipExp,
                     religion: religion,
                     personality: personality,
+                    interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
                     bio: bio,
                     phone: phone,
                     photoURL: photoURL,
+                    isOnline: false,
+                    lastSeen: new Date(),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -1394,21 +1728,43 @@
             }
         }
         
-        // Load students for browsing
+        // Load students for browsing with filters
         async function loadStudents() {
             const studentsContainer = document.getElementById('studentsContainer');
             studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
             
             try {
-                // Get all users except current user
-                const usersSnapshot = await db.collection('users')
-                    .where('uid', '!=', currentUser.uid)
-                    .get();
+                let query = db.collection('users').where('uid', '!=', currentUser.uid);
+                
+                // Apply filters if any
+                if (Object.keys(activeFilters).length > 0) {
+                    for (const [key, value] of Object.entries(activeFilters)) {
+                        if (value) {
+                            if (key === 'interests') {
+                                // For interests, we need to check if array contains any of the values
+                                const interestTerms = value.split(',').map(item => item.trim());
+                                // This is a simplification - Firestore doesn't support OR queries natively
+                                // In a real app, you might need a different approach
+                                query = query.where('interests', 'array-contains-any', interestTerms);
+                            } else {
+                                query = query.where(key, '==', value);
+                            }
+                        }
+                    }
+                }
+                
+                const usersSnapshot = await query.get();
                 
                 studentsContainer.innerHTML = '';
                 
                 if (usersSnapshot.empty) {
-                    studentsContainer.innerHTML = '<p style="text-align: center; padding: 2rem;">No students found.</p>';
+                    studentsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>No students found</h3>
+                            <p>Try adjusting your filters to see more results</p>
+                        </div>
+                    `;
                     return;
                 }
                 
@@ -1417,20 +1773,35 @@
                     const studentCard = document.createElement('div');
                     studentCard.className = 'student-card';
                     
+                    // Create interest tags
+                    let interestTags = '';
+                    if (student.interests && student.interests.length > 0) {
+                        student.interests.slice(0, 4).forEach(interest => {
+                            interestTags += `<span class="interest-tag">${interest}</span>`;
+                        });
+                        if (student.interests.length > 4) {
+                            interestTags += `<span class="interest-tag">+${student.interests.length - 4} more</span>`;
+                        }
+                    }
+                    
                     studentCard.innerHTML = `
                         <div class="student-img">
                             ${student.photoURL ? 
                                 `<img src="${student.photoURL}" alt="${student.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
                                 `<i class="fas fa-user"></i>`
                             }
+                            <div class="student-online" style="display: ${student.isOnline ? 'block' : 'none'}"></div>
                         </div>
                         <div class="student-info">
-                            <h3 class="student-name">${student.fullName}</h3>
+                            <div class="student-name">
+                                <span>${student.fullName}</span>
+                                <span>${student.year}</span>
+                            </div>
                             <div class="student-details">
                                 <p><strong>Department:</strong> ${student.department}</p>
-                                <p><strong>Year:</strong> ${student.year}</p>
                                 <p><strong>Looking for:</strong> ${student.lookingFor}</p>
                             </div>
+                            ${interestTags ? `<div class="student-interests">${interestTags}</div>` : ''}
                             <button class="btn" style="width: 100%;" onclick="startConversation('${student.uid}')">Send Message</button>
                         </div>
                     `;
@@ -1451,6 +1822,7 @@
             document.getElementById('profileStudentId').value = userProfile.studentId;
             document.getElementById('profileDepartment').value = userProfile.department;
             document.getElementById('profileYear').value = userProfile.year;
+            document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
             document.getElementById('profileBio').value = userProfile.bio;
             
             // Load profile image if available
@@ -1473,6 +1845,7 @@
             const fullName = document.getElementById('profileName').value;
             const department = document.getElementById('profileDepartment').value;
             const year = document.getElementById('profileYear').value;
+            const interests = document.getElementById('profileInterests').value;
             const bio = document.getElementById('profileBio').value;
             const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
             
@@ -1483,6 +1856,7 @@
                     fullName: fullName,
                     department: department,
                     year: year,
+                    interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
                     bio: bio,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
@@ -1549,7 +1923,13 @@
                 conversationsList.innerHTML = '';
                 
                 if (conversationsSnapshot.empty) {
-                    conversationsList.innerHTML = '<p style="text-align: center; padding: 1rem;">No conversations yet.</p>';
+                    conversationsList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-comments"></i>
+                            <h3>No conversations yet</h3>
+                            <p>Start a conversation with someone from the Browse page</p>
+                        </div>
+                    `;
                     return;
                 }
                 
@@ -1570,17 +1950,22 @@
                     conversationElement.dataset.conversationId = doc.id;
                     conversationElement.dataset.otherUserId = otherUserId;
                     
+                    const lastUpdated = conversation.lastUpdated ? conversation.lastUpdated.toDate() : new Date();
+                    const timeAgo = getTimeAgo(lastUpdated);
+                    
                     conversationElement.innerHTML = `
                         <div class="conversation-img">
                             ${user.photoURL ? 
                                 `<img src="${user.photoURL}" alt="${user.fullName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
                                 `<i class="fas fa-user"></i>`
                             }
+                            <div class="conversation-online" style="display: ${user.isOnline ? 'block' : 'none'}"></div>
                         </div>
-                        <div>
-                            <h4>${user.fullName}</h4>
-                            <p>${conversation.lastMessage || 'No messages yet'}</p>
+                        <div class="conversation-info">
+                            <div class="conversation-name">${user.fullName}</div>
+                            <div class="conversation-preview">${conversation.lastMessage || 'No messages yet'}</div>
                         </div>
+                        <div class="conversation-time">${timeAgo}</div>
                     `;
                     
                     conversationElement.addEventListener('click', function() {
@@ -1621,7 +2006,12 @@
                 }
                 
                 const otherUser = otherUserDoc.data();
-                chatHeader.textContent = otherUser.fullName;
+                chatHeader.innerHTML = `
+                    <div class="chat-user-info">
+                        <span>${otherUser.fullName}</span>
+                        <span class="chat-user-status">${otherUser.isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
+                `;
                 
                 // Set up real-time listener for messages
                 unsubscribeChat = db.collection('conversations')
@@ -1639,11 +2029,12 @@
                                 const messageElement = document.createElement('div');
                                 messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
                                 
-                                const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString() : 'Just now';
+                                const time = message.timestamp ? message.timestamp.toDate() : new Date();
+                                const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                                 
                                 messageElement.innerHTML = `
                                     <p>${message.text}</p>
-                                    <small>${time}</small>
+                                    <div class="message-time">${timeString}</div>
                                 `;
                                 
                                 chatMessages.appendChild(messageElement);
@@ -1754,6 +2145,106 @@
             }
         });
         
+        // Filter functionality
+        document.getElementById('applyFilters').addEventListener('click', function() {
+            // Get filter values
+            activeFilters = {
+                department: document.getElementById('filterDepartment').value,
+                year: document.getElementById('filterYear').value,
+                gender: document.getElementById('filterGender').value,
+                religion: document.getElementById('filterReligion').value,
+                personality: document.getElementById('filterPersonality').value,
+                lookingFor: document.getElementById('filterLookingFor').value,
+                interests: document.getElementById('filterInterests').value,
+                maritalStatus: document.getElementById('filterMaritalStatus').value
+            };
+            
+            // Update filter tags
+            updateFilterTags();
+            
+            // Load students with filters
+            loadStudents();
+        });
+        
+        // Clear filters
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            // Reset filter inputs
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterYear').value = '';
+            document.getElementById('filterGender').value = '';
+            document.getElementById('filterReligion').value = '';
+            document.getElementById('filterPersonality').value = '';
+            document.getElementById('filterLookingFor').value = '';
+            document.getElementById('filterInterests').value = '';
+            document.getElementById('filterMaritalStatus').value = '';
+            
+            // Clear active filters
+            activeFilters = {};
+            
+            // Update filter tags
+            updateFilterTags();
+            
+            // Load all students
+            loadStudents();
+        });
+        
+        // Toggle filter visibility on mobile
+        document.getElementById('filterToggle').addEventListener('click', function() {
+            document.getElementById('filterContent').classList.toggle('show');
+        });
+        
+        // Update filter tags display
+        function updateFilterTags() {
+            const filterTags = document.getElementById('filterTags');
+            filterTags.innerHTML = '';
+            
+            let hasActiveFilters = false;
+            
+            for (const [key, value] of Object.entries(activeFilters)) {
+                if (value) {
+                    hasActiveFilters = true;
+                    const tag = document.createElement('div');
+                    tag.className = 'filter-tag';
+                    tag.innerHTML = `
+                        ${key}: ${value}
+                        <button type="button" onclick="removeFilter('${key}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    filterTags.appendChild(tag);
+                }
+            }
+            
+            filterTags.style.display = hasActiveFilters ? 'flex' : 'none';
+        }
+        
+        // Remove individual filter
+        function removeFilter(key) {
+            activeFilters[key] = '';
+            document.getElementById(`filter${key.charAt(0).toUpperCase() + key.slice(1)}`).value = '';
+            updateFilterTags();
+            loadStudents();
+        }
+        
+        // Get time ago string
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'Just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes}m ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours}h ago`;
+            } else {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days}d ago`;
+            }
+        }
+        
         // Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', async function(e) {
             e.preventDefault();
@@ -1813,11 +2304,6 @@
             });
         });
         
-        // Apply filters button
-        document.getElementById('applyFilters').addEventListener('click', function() {
-            loadStudents(); // Reload students with filters applied
-        });
-        
         // Firebase auth state observer
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -1830,6 +2316,13 @@
                     
                     if (userDoc.exists) {
                         userProfile = userDoc.data();
+                        
+                        // Update user online status
+                        await db.collection('users').doc(user.uid).update({
+                            isOnline: true,
+                            lastSeen: new Date()
+                        });
+                        
                         updateNavigation(true);
                         
                         // If on auth pages, redirect to dashboard
@@ -1851,6 +2344,18 @@
                 }
             } else {
                 // User is signed out
+                if (currentUser) {
+                    // Update user offline status
+                    try {
+                        await db.collection('users').doc(currentUser.uid).update({
+                            isOnline: false,
+                            lastSeen: new Date()
+                        });
+                    } catch (error) {
+                        console.error('Error updating offline status:', error);
+                    }
+                }
+                
                 currentUser = null;
                 userProfile = null;
                 updateNavigation(false);
@@ -1862,6 +2367,59 @@
                     document.getElementById('profile').classList.contains('active')) {
                     showSection('home');
                     updateActiveNav(document.querySelector('[data-section="home"]'));
+                }
+            }
+        });
+        
+        // Update user online status when window gains focus
+        window.addEventListener('focus', async () => {
+            if (currentUser) {
+                try {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        isOnline: true,
+                        lastSeen: new Date()
+                    });
+                } catch (error) {
+                    console.error('Error updating online status:', error);
+                }
+            }
+        });
+        
+        // Update user offline status when window loses focus
+        window.addEventListener('blur', async () => {
+            if (currentUser) {
+                try {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        isOnline: false,
+                        lastSeen: new Date()
+                    });
+                } catch (error) {
+                    console.error('Error updating offline status:', error);
+                }
+            }
+        });
+        
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', async () => {
+            if (currentUser) {
+                if (document.visibilityState === 'visible') {
+                    try {
+                        await db.collection('users').doc(currentUser.uid).update({
+                            isOnline: true,
+                            lastSeen: new Date()
+                        });
+                    } catch (error) {
+                        console.error('Error updating online status:', error);
+                    }
+                } else {
+                    try {
+                        await db.collection('users').doc(currentUser.uid).update({
+                            isOnline: false,
+                            lastSeen: new Date()
+                        });
+                    } catch (error) {
+                        console.error('Error updating offline status:', error);
+                    }
                 }
             }
         });
