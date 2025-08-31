@@ -1133,18 +1133,15 @@
 
     <script>
         // Firebase configuration - Replace with your own config
-        
-// Firebase configuration - Replaced with your config
-const firebaseConfig = {
-  apiKey: "AIzaSyB59sLUXNafCd7AHhT1-t9ex7ow9fRr4rQ",
-  authDomain: "wcu-dating-5decd.firebaseapp.com",
-  projectId: "wcu-dating-5decd",
-  storageBucket: "wcu-dating-5decd.firebasestorage.app",
-  messagingSenderId: "240008579483",
-  appId: "1:240008579483:web:ec969a34a8b41b22c3393e",
-  measurementId: "G-T4EHB92656"
-};
-        
+        const firebaseConfig = {
+            apiKey: "AIzaSyB59sLUXNafCd7AHhT1-t9ex7ow9fRr4rQ",
+            authDomain: "wcu-dating-5decd.firebaseapp.com",
+            projectId: "wcu-dating-5decd",
+            storageBucket: "wcu-dating-5decd.firebasestorage.app",
+            messagingSenderId: "240008579483",
+            appId: "1:240008579483:web:ec969a34a8b41b22c3393e",
+            measurementId: "G-T4EHB92656"
+        };
         
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -1155,6 +1152,7 @@ const firebaseConfig = {
         // Current user data
         let currentUser = null;
         let userProfile = null;
+        let unsubscribeChat = null;
 
         // Navigation functionality
         const navLinks = document.querySelectorAll('.nav-link');
@@ -1185,6 +1183,12 @@ const firebaseConfig = {
         
         // Show the specified section and hide others
         function showSection(sectionId) {
+            // Clean up any real-time listeners when leaving messages
+            if (unsubscribeChat && !sectionId.includes('messages')) {
+                unsubscribeChat();
+                unsubscribeChat = null;
+            }
+            
             sections.forEach(section => {
                 section.classList.remove('active');
             });
@@ -1600,6 +1604,11 @@ const firebaseConfig = {
             const chatMessages = document.getElementById('chatMessages');
             const chatInput = document.getElementById('chatInput');
             
+            // Clean up previous listener if exists
+            if (unsubscribeChat) {
+                unsubscribeChat();
+            }
+            
             chatMessages.innerHTML = '<div class="spinner"></div>';
             chatInput.style.display = 'none';
             
@@ -1614,62 +1623,41 @@ const firebaseConfig = {
                 const otherUser = otherUserDoc.data();
                 chatHeader.textContent = otherUser.fullName;
                 
-                // Get messages for this conversation
-                
-const unsubscribe = db.collection('conversations')
-  .doc(conversationId)
-  .collection('messages')
-  .orderBy('timestamp', 'asc')
-  .onSnapshot((snapshot) => {
-    // This will update in real-time
-    updateChatMessages(snapshot);
-  });
-       
-       
-       function updateChatMessages(snapshot) {
-    const chatMessages = document.getElementById('chatMessages');
-    chatMessages.innerHTML = '';
-    
-    snapshot.forEach((doc) => {
-        const message = doc.data();
-        const messageElement = document.createElement('div');
-        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
-        messageElement.innerHTML = `<p>${message.text}</p><small>${message.timestamp?.toDate().toLocaleTimeString() || 'Just now'}</small>`;
-        chatMessages.appendChild(messageElement);
-    });
-    
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-       
-                
-                
-                chatMessages.innerHTML = '';
-                
-                if (messagesSnapshot.empty) {
-                    chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
-                } else {
-                    messagesSnapshot.forEach(doc => {
-                        const message = doc.data();
-                        const messageElement = document.createElement('div');
-                        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+                // Set up real-time listener for messages
+                unsubscribeChat = db.collection('conversations')
+                    .doc(conversationId)
+                    .collection('messages')
+                    .orderBy('timestamp', 'asc')
+                    .onSnapshot((snapshot) => {
+                        chatMessages.innerHTML = '';
                         
-                        const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString() : 'Just now';
+                        if (snapshot.empty) {
+                            chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
+                        } else {
+                            snapshot.forEach(doc => {
+                                const message = doc.data();
+                                const messageElement = document.createElement('div');
+                                messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+                                
+                                const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString() : 'Just now';
+                                
+                                messageElement.innerHTML = `
+                                    <p>${message.text}</p>
+                                    <small>${time}</small>
+                                `;
+                                
+                                chatMessages.appendChild(messageElement);
+                            });
+                            
+                            // Scroll to bottom
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
                         
-                        messageElement.innerHTML = `
-                            <p>${message.text}</p>
-                            <small>${time}</small>
-                        `;
-                        
-                        chatMessages.appendChild(messageElement);
+                        // Show chat input
+                        chatInput.style.display = 'flex';
                     });
-                    
-                    // Scroll to bottom
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
                 
                 // Show chat input and set up event listener
-                chatInput.style.display = 'flex';
                 chatInput.dataset.conversationId = conversationId;
                 chatInput.dataset.otherUserId = otherUserId;
                 
@@ -1753,12 +1741,16 @@ const unsubscribe = db.collection('conversations')
                 // Clear input
                 messageInput.value = '';
                 
-                // Reload conversation to show new message
-                loadConversation(conversationId, otherUserId);
-                
             } catch (error) {
                 console.error('Error sending message:', error);
                 showNotification('Error sending message', 'error');
+            }
+        });
+        
+        // Allow sending message with Enter key
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('sendMessageBtn').click();
             }
         });
         
@@ -1767,6 +1759,12 @@ const unsubscribe = db.collection('conversations')
             e.preventDefault();
             
             try {
+                // Clean up any listeners
+                if (unsubscribeChat) {
+                    unsubscribeChat();
+                    unsubscribeChat = null;
+                }
+                
                 await auth.signOut();
                 currentUser = null;
                 userProfile = null;
@@ -1867,112 +1865,6 @@ const unsubscribe = db.collection('conversations')
                 }
             }
         });
-        
-        
-        
-        
-// ====== REAL-TIME CHAT FIX ======
-// Clean up chat listeners
-function cleanupChatListeners() {
-  const chatInput = document.getElementById('chatInput');
-  if (chatInput.dataset.unsubscribe) {
-    chatInput.dataset.unsubscribe();
-    delete chatInput.dataset.unsubscribe;
-  }
-}
-
-// Replace the existing loadConversation function
-async function loadConversation(conversationId, otherUserId) {
-  const chatHeader = document.getElementById('chatHeader');
-  const chatMessages = document.getElementById('chatMessages');
-  const chatInput = document.getElementById('chatInput');
-  
-  // Clean up any previous listeners
-  cleanupChatListeners();
-  
-  chatMessages.innerHTML = '<div class="spinner"></div>';
-  chatInput.style.display = 'none';
-  
-  try {
-    // Get other user's data
-    const otherUserDoc = await db.collection('users').doc(otherUserId).get();
-    if (!otherUserDoc.exists) {
-      chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">User not found.</p>';
-      return;
-    }
-    
-    const otherUser = otherUserDoc.data();
-    chatHeader.textContent = otherUser.fullName;
-    
-    // REAL-TIME MESSAGE LISTENER
-    const unsubscribe = db.collection('conversations')
-      .doc(conversationId)
-      .collection('messages')
-      .orderBy('timestamp', 'asc')
-      .onSnapshot((snapshot) => {
-        chatMessages.innerHTML = '';
-        
-        if (snapshot.empty) {
-          chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
-        } else {
-          snapshot.forEach((doc) => {
-            const message = doc.data();
-            const messageElement = document.createElement('div');
-            messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
-            
-            const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString() : 'Just now';
-            
-            messageElement.innerHTML = `
-                            <p>${message.text}</p>
-                            <small>${time}</small>
-                        `;
-            
-            chatMessages.appendChild(messageElement);
-          });
-          
-          // Scroll to bottom
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-        
-        // Show chat input
-        chatInput.style.display = 'flex';
-      });
-    
-    // Store unsubscribe function for cleanup
-    chatInput.dataset.unsubscribe = unsubscribe;
-    
-  } catch (error) {
-    console.error('Error loading conversation:', error);
-    chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--error-color);">Error loading conversation.</p>';
-  }
-  
-  // Show chat input and set up event listener
-  chatInput.dataset.conversationId = conversationId;
-  chatInput.dataset.otherUserId = otherUserId;
-}
-
-// Update showSection to cleanup chat when leaving messages
-const originalShowSection = showSection;
-showSection = function(sectionId) {
-  // Clean up chat listeners when leaving messages section
-  if (document.getElementById('messages').classList.contains('active')) {
-    cleanupChatListeners();
-  }
-  
-  // Call the original function
-  originalShowSection(sectionId);
-};
-// ====== END REAL-TIME CHAT FIX ======
-        
-        
-        
-        
-        
     </script>
-    
-    
-    
-    
-    
 </body>
 </html>
