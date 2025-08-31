@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WCU Dating - Connect with Fellow Students</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --primary-color: #6a1b9a;
@@ -1127,6 +1132,26 @@
     </footer>
 
     <script>
+        // Firebase configuration - Replace with your own config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Current user data
+        let currentUser = null;
+        let userProfile = null;
+
         // Navigation functionality
         const navLinks = document.querySelectorAll('.nav-link');
         const sections = document.querySelectorAll('.section');
@@ -1160,6 +1185,17 @@
                 section.classList.remove('active');
             });
             document.getElementById(sectionId).classList.add('active');
+            
+            // Load section-specific data
+            if (sectionId === 'dashboard' && currentUser) {
+                loadDashboard();
+            } else if (sectionId === 'browse' && currentUser) {
+                loadStudents();
+            } else if (sectionId === 'profile' && currentUser) {
+                loadProfile();
+            } else if (sectionId === 'messages' && currentUser) {
+                loadConversations();
+            }
         }
         
         // Update active navigation link
@@ -1181,8 +1217,22 @@
             }, 3000);
         }
         
-        // Simulate login functionality for demo
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Toggle loading state for buttons
+        function toggleButtonLoading(buttonId, isLoading) {
+            const btnText = document.getElementById(`${buttonId}BtnText`);
+            const spinner = document.getElementById(`${buttonId}Spinner`);
+            
+            if (isLoading) {
+                btnText.style.display = 'none';
+                spinner.style.display = 'block';
+            } else {
+                btnText.style.display = 'block';
+                spinner.style.display = 'none';
+            }
+        }
+        
+        // Handle login functionality
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const email = document.getElementById('loginEmail').value;
@@ -1194,82 +1244,267 @@
                 return;
             }
             
-            // Simulate login process
-            showNotification('Login successful!', 'success');
+            toggleButtonLoading('login', true);
             
-            // Show authenticated navigation
-            document.getElementById('loginNav').style.display = 'none';
-            document.getElementById('signupNav').style.display = 'none';
-            document.getElementById('dashboardNav').style.display = 'list-item';
-            document.getElementById('browseNav').style.display = 'list-item';
-            document.getElementById('messagesNav').style.display = 'list-item';
-            document.getElementById('profileNav').style.display = 'list-item';
-            
-            // Show dashboard
-            showSection('dashboard');
-            updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+            try {
+                // Sign in with Firebase Authentication
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                
+                // Get user profile from Firestore
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    userProfile = userDoc.data();
+                    showNotification('Login successful!', 'success');
+                    
+                    // Update navigation
+                    updateNavigation(true);
+                    
+                    // Show dashboard
+                    showSection('dashboard');
+                    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+                } else {
+                    showNotification('User profile not found. Please sign up.', 'error');
+                    await auth.signOut();
+                    currentUser = null;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification(error.message, 'error');
+            } finally {
+                toggleButtonLoading('login', false);
+            }
         });
         
-        // Simulate signup functionality for demo
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
+        // Handle signup functionality
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Simple validation
+            // Get form values
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const fullName = document.getElementById('fullName').value;
+            const studentId = document.getElementById('studentId').value;
+            const department = document.getElementById('department').value;
+            const year = document.getElementById('year').value;
+            const gender = document.getElementById('gender').value;
+            const lookingFor = document.getElementById('lookingFor').value;
+            const maritalStatus = document.getElementById('maritalStatus').value;
+            const relationshipExp = document.getElementById('relationshipExp').value;
+            const religion = document.getElementById('religion').value;
+            const personality = document.getElementById('personality').value;
+            const bio = document.getElementById('bio').value;
+            const phone = document.getElementById('phone').value;
+            const profilePhoto = document.getElementById('profilePhoto').files[0];
             
+            // Validation
             if (password !== confirmPassword) {
                 showNotification('Passwords do not match', 'error');
                 return;
             }
             
-            // Simulate signup process
-            showNotification('Registration successful!', 'success');
+            toggleButtonLoading('signup', true);
             
-            // Show authenticated navigation
-            document.getElementById('loginNav').style.display = 'none';
-            document.getElementById('signupNav').style.display = 'none';
-            document.getElementById('dashboardNav').style.display = 'list-item';
-            document.getElementById('browseNav').style.display = 'list-item';
-            document.getElementById('messagesNav').style.display = 'list-item';
-            document.getElementById('profileNav').style.display = 'list-item';
-            
-            // Show dashboard
-            showSection('dashboard');
-            updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+            try {
+                // Create user with Firebase Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                
+                let photoURL = null;
+                // Upload profile photo if selected
+                if (profilePhoto) {
+                    const storageRef = storage.ref();
+                    const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+                    await photoRef.put(profilePhoto);
+                    photoURL = await photoRef.getDownloadURL();
+                }
+                
+                // Create user profile in Firestore
+                const userProfileData = {
+                    uid: currentUser.uid,
+                    email: email,
+                    fullName: fullName,
+                    studentId: studentId,
+                    department: department,
+                    year: year,
+                    gender: gender,
+                    lookingFor: lookingFor,
+                    maritalStatus: maritalStatus,
+                    relationshipExp: relationshipExp,
+                    religion: religion,
+                    personality: personality,
+                    bio: bio,
+                    phone: phone,
+                    photoURL: photoURL,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection('users').doc(currentUser.uid).set(userProfileData);
+                userProfile = userProfileData;
+                
+                showNotification('Registration successful!', 'success');
+                
+                // Update navigation
+                updateNavigation(true);
+                
+                // Show dashboard
+                showSection('dashboard');
+                updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+            } catch (error) {
+                console.error('Signup error:', error);
+                showNotification(error.message, 'error');
+                
+                // Delete user if profile creation failed
+                if (currentUser) {
+                    await currentUser.delete();
+                    currentUser = null;
+                }
+            } finally {
+                toggleButtonLoading('signup', false);
+            }
         });
         
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        // Load dashboard data
+        async function loadDashboard() {
+            if (!currentUser || !userProfile) return;
+            
+            document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName}!`;
+            document.getElementById('dashboardDetails').textContent = `${userProfile.department}, ${userProfile.year}`;
+            document.getElementById('dashboardBio').textContent = `"${userProfile.bio}"`;
+            
+            // Load profile image if available
+            if (userProfile.photoURL) {
+                document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
+                document.getElementById('dashboardProfileImg').style.display = 'block';
+                document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('dashboardProfileImg').style.display = 'none';
+                document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
+            }
+        }
+        
+        // Load students for browsing
+        async function loadStudents() {
+            const studentsContainer = document.getElementById('studentsContainer');
+            studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
+            
+            try {
+                // Get all users except current user
+                const usersSnapshot = await db.collection('users')
+                    .where('uid', '!=', currentUser.uid)
+                    .get();
+                
+                studentsContainer.innerHTML = '';
+                
+                if (usersSnapshot.empty) {
+                    studentsContainer.innerHTML = '<p style="text-align: center; padding: 2rem;">No students found.</p>';
+                    return;
+                }
+                
+                usersSnapshot.forEach(doc => {
+                    const student = doc.data();
+                    const studentCard = document.createElement('div');
+                    studentCard.className = 'student-card';
+                    
+                    studentCard.innerHTML = `
+                        <div class="student-img">
+                            ${student.photoURL ? 
+                                `<img src="${student.photoURL}" alt="${student.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                                `<i class="fas fa-user"></i>`
+                            }
+                        </div>
+                        <div class="student-info">
+                            <h3 class="student-name">${student.fullName}</h3>
+                            <div class="student-details">
+                                <p><strong>Department:</strong> ${student.department}</p>
+                                <p><strong>Year:</strong> ${student.year}</p>
+                                <p><strong>Looking for:</strong> ${student.lookingFor}</p>
+                            </div>
+                            <button class="btn" style="width: 100%;" onclick="startConversation('${student.uid}')">Send Message</button>
+                        </div>
+                    `;
+                    
+                    studentsContainer.appendChild(studentCard);
+                });
+            } catch (error) {
+                console.error('Error loading students:', error);
+                studentsContainer.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--error-color);">Error loading students.</p>';
+            }
+        }
+        
+        // Load user profile
+        function loadProfile() {
+            if (!currentUser || !userProfile) return;
+            
+            document.getElementById('profileName').value = userProfile.fullName;
+            document.getElementById('profileStudentId').value = userProfile.studentId;
+            document.getElementById('profileDepartment').value = userProfile.department;
+            document.getElementById('profileYear').value = userProfile.year;
+            document.getElementById('profileBio').value = userProfile.bio;
+            
+            // Load profile image if available
+            if (userProfile.photoURL) {
+                document.getElementById('profilePhotoPreview').src = userProfile.photoURL;
+                document.getElementById('profilePhotoPreview').style.display = 'block';
+                document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('profilePhotoPreview').style.display = 'none';
+                document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
+            }
+        }
+        
+        // Update profile
+        document.getElementById('profileForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Show unauthenticated navigation
-            document.getElementById('loginNav').style.display = 'list-item';
-            document.getElementById('signupNav').style.display = 'list-item';
-            document.getElementById('dashboardNav').style.display = 'none';
-            document.getElementById('browseNav').style.display = 'none';
-            document.getElementById('messagesNav').style.display = 'none';
-            document.getElementById('profileNav').style.display = 'none';
+            if (!currentUser) return;
             
-            // Show home section
-            showSection('home');
-            updateActiveNav(document.querySelector('[data-section="home"]'));
+            const fullName = document.getElementById('profileName').value;
+            const department = document.getElementById('profileDepartment').value;
+            const year = document.getElementById('profileYear').value;
+            const bio = document.getElementById('profileBio').value;
+            const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
             
-            showNotification('Logged out successfully', 'success');
-        });
-        
-        // Dashboard card navigation
-        document.querySelectorAll('.dashboard-cards .card').forEach(card => {
-            card.addEventListener('click', function() {
-                const sectionId = this.getAttribute('data-section');
-                showSection(sectionId);
-                updateActiveNav(document.querySelector(`[data-section="${sectionId}"]`));
-            });
-        });
-        
-        // Apply filters button
-        document.getElementById('applyFilters').addEventListener('click', function() {
-            showNotification('Filters applied', 'success');
+            toggleButtonLoading('updateProfile', true);
+            
+            try {
+                let updates = {
+                    fullName: fullName,
+                    department: department,
+                    year: year,
+                    bio: bio,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Upload new profile photo if selected
+                if (profilePhoto) {
+                    const storageRef = storage.ref();
+                    const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+                    await photoRef.put(profilePhoto);
+                    updates.photoURL = await photoRef.getDownloadURL();
+                }
+                
+                // Update user profile in Firestore
+                await db.collection('users').doc(currentUser.uid).update(updates);
+                
+                // Update local user profile
+                userProfile = {...userProfile, ...updates};
+                
+                showNotification('Profile updated successfully!', 'success');
+                
+                // Reload dashboard if needed
+                if (document.getElementById('dashboard').classList.contains('active')) {
+                    loadDashboard();
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showNotification(error.message, 'error');
+            } finally {
+                toggleButtonLoading('updateProfile', false);
+            }
         });
         
         // Change profile photo button
@@ -1291,56 +1526,319 @@
             }
         });
         
-        // Profile form submission
-        document.getElementById('profileForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            showNotification('Profile updated successfully!', 'success');
-        });
+        // Load conversations
+        async function loadConversations() {
+            const conversationsList = document.getElementById('conversationsList');
+            conversationsList.innerHTML = '<div class="spinner"></div>';
+            
+            try {
+                // Get conversations where current user is a participant
+                const conversationsSnapshot = await db.collection('conversations')
+                    .where('participants', 'array-contains', currentUser.uid)
+                    .orderBy('lastUpdated', 'desc')
+                    .get();
+                
+                conversationsList.innerHTML = '';
+                
+                if (conversationsSnapshot.empty) {
+                    conversationsList.innerHTML = '<p style="text-align: center; padding: 1rem;">No conversations yet.</p>';
+                    return;
+                }
+                
+                // Get user data for each conversation
+                const conversationPromises = conversationsSnapshot.docs.map(async doc => {
+                    const conversation = doc.data();
+                    const otherUserId = conversation.participants.find(uid => uid !== currentUser.uid);
+                    
+                    if (!otherUserId) return null;
+                    
+                    const userDoc = await db.collection('users').doc(otherUserId).get();
+                    if (!userDoc.exists) return null;
+                    
+                    const user = userDoc.data();
+                    
+                    const conversationElement = document.createElement('div');
+                    conversationElement.className = 'conversation';
+                    conversationElement.dataset.conversationId = doc.id;
+                    conversationElement.dataset.otherUserId = otherUserId;
+                    
+                    conversationElement.innerHTML = `
+                        <div class="conversation-img">
+                            ${user.photoURL ? 
+                                `<img src="${user.photoURL}" alt="${user.fullName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
+                                `<i class="fas fa-user"></i>`
+                            }
+                        </div>
+                        <div>
+                            <h4>${user.fullName}</h4>
+                            <p>${conversation.lastMessage || 'No messages yet'}</p>
+                        </div>
+                    `;
+                    
+                    conversationElement.addEventListener('click', function() {
+                        loadConversation(doc.id, otherUserId);
+                    });
+                    
+                    conversationsList.appendChild(conversationElement);
+                    return conversationElement;
+                });
+                
+                await Promise.all(conversationPromises);
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                conversationsList.innerHTML = '<p style="text-align: center; padding: 1rem; color: var(--error-color);">Error loading conversations.</p>';
+            }
+        }
         
-        // Send message button
-        document.getElementById('sendMessageBtn').addEventListener('click', function() {
-            const messageInput = document.getElementById('messageInput');
-            const messageText = messageInput.value.trim();
-            
-            if (messageText === '') return;
-            
+        // Load a specific conversation
+        async function loadConversation(conversationId, otherUserId) {
+            const chatHeader = document.getElementById('chatHeader');
             const chatMessages = document.getElementById('chatMessages');
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message sent';
-            messageElement.innerHTML = `
-                <p>${messageText}</p>
-                <small>Just now</small>
-            `;
+            const chatInput = document.getElementById('chatInput');
             
-            chatMessages.appendChild(messageElement);
-            messageInput.value = '';
+            chatMessages.innerHTML = '<div class="spinner"></div>';
+            chatInput.style.display = 'none';
             
-            // Scroll to bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-        
-        // Simulate conversation clicks
-        const conversations = document.querySelectorAll('.conversation');
-        conversations.forEach(conv => {
-            conv.addEventListener('click', function() {
-                conversations.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
+            try {
+                // Get other user's data
+                const otherUserDoc = await db.collection('users').doc(otherUserId).get();
+                if (!otherUserDoc.exists) {
+                    chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">User not found.</p>';
+                    return;
+                }
                 
-                document.getElementById('chatHeader').textContent = this.querySelector('h4').textContent;
-                document.getElementById('chatInput').style.display = 'flex';
+                const otherUser = otherUserDoc.data();
+                chatHeader.textContent = otherUser.fullName;
                 
-                const chatMessages = document.getElementById('chatMessages');
+                // Get messages for this conversation
+                const messagesSnapshot = await db.collection('conversations')
+                    .doc(conversationId)
+                    .collection('messages')
+                    .orderBy('timestamp', 'asc')
+                    .get();
+                
                 chatMessages.innerHTML = '';
                 
-                // Add sample received message
-                const receivedMessage = document.createElement('div');
-                receivedMessage.className = 'message received';
-                receivedMessage.innerHTML = `
-                    <p>Hello there! How are you doing today?</p>
-                    <small>2 minutes ago</small>
-                `;
-                chatMessages.appendChild(receivedMessage);
+                if (messagesSnapshot.empty) {
+                    chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
+                } else {
+                    messagesSnapshot.forEach(doc => {
+                        const message = doc.data();
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+                        
+                        const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString() : 'Just now';
+                        
+                        messageElement.innerHTML = `
+                            <p>${message.text}</p>
+                            <small>${time}</small>
+                        `;
+                        
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                // Show chat input and set up event listener
+                chatInput.style.display = 'flex';
+                chatInput.dataset.conversationId = conversationId;
+                chatInput.dataset.otherUserId = otherUserId;
+                
+            } catch (error) {
+                console.error('Error loading conversation:', error);
+                chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--error-color);">Error loading conversation.</p>';
+            }
+        }
+        
+        // Start a new conversation
+        async function startConversation(otherUserId) {
+            try {
+                // Check if conversation already exists
+                const existingConversation = await db.collection('conversations')
+                    .where('participants', 'array-contains', currentUser.uid)
+                    .get();
+                
+                let conversationId = null;
+                
+                existingConversation.forEach(doc => {
+                    const conversation = doc.data();
+                    if (conversation.participants.includes(otherUserId)) {
+                        conversationId = doc.id;
+                    }
+                });
+                
+                // Create new conversation if it doesn't exist
+                if (!conversationId) {
+                    const newConversation = {
+                        participants: [currentUser.uid, otherUserId],
+                        lastMessage: '',
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    const conversationRef = await db.collection('conversations').add(newConversation);
+                    conversationId = conversationRef.id;
+                }
+                
+                // Switch to messages section and load the conversation
+                showSection('messages');
+                updateActiveNav(document.querySelector('[data-section="messages"]'));
+                loadConversation(conversationId, otherUserId);
+                
+            } catch (error) {
+                console.error('Error starting conversation:', error);
+                showNotification('Error starting conversation', 'error');
+            }
+        }
+        
+        // Send message
+        document.getElementById('sendMessageBtn').addEventListener('click', async function() {
+            const chatInput = document.getElementById('chatInput');
+            const messageInput = document.getElementById('messageInput');
+            const conversationId = chatInput.dataset.conversationId;
+            const otherUserId = chatInput.dataset.otherUserId;
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText || !conversationId) return;
+            
+            try {
+                // Add message to conversation
+                const messageData = {
+                    text: messageText,
+                    senderId: currentUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .collection('messages')
+                    .add(messageData);
+                
+                // Update conversation last message and timestamp
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .update({
+                        lastMessage: messageText,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Reload conversation to show new message
+                loadConversation(conversationId, otherUserId);
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Error sending message', 'error');
+            }
+        });
+        
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            try {
+                await auth.signOut();
+                currentUser = null;
+                userProfile = null;
+                
+                // Show unauthenticated navigation
+                updateNavigation(false);
+                
+                // Show home section
+                showSection('home');
+                updateActiveNav(document.querySelector('[data-section="home"]'));
+                
+                showNotification('Logged out successfully', 'success');
+            } catch (error) {
+                console.error('Logout error:', error);
+                showNotification('Error logging out', 'error');
+            }
+        });
+        
+        // Update navigation based on authentication status
+        function updateNavigation(isAuthenticated) {
+            if (isAuthenticated) {
+                document.getElementById('loginNav').style.display = 'none';
+                document.getElementById('signupNav').style.display = 'none';
+                document.getElementById('dashboardNav').style.display = 'list-item';
+                document.getElementById('browseNav').style.display = 'list-item';
+                document.getElementById('messagesNav').style.display = 'list-item';
+                document.getElementById('profileNav').style.display = 'list-item';
+            } else {
+                document.getElementById('loginNav').style.display = 'list-item';
+                document.getElementById('signupNav').style.display = 'list-item';
+                document.getElementById('dashboardNav').style.display = 'none';
+                document.getElementById('browseNav').style.display = 'none';
+                document.getElementById('messagesNav').style.display = 'none';
+                document.getElementById('profileNav').style.display = 'none';
+            }
+        }
+        
+        // Dashboard card navigation
+        document.querySelectorAll('.dashboard-cards .card').forEach(card => {
+            card.addEventListener('click', function() {
+                const sectionId = this.getAttribute('data-section');
+                if (sectionId === 'home' && this.id === 'logoutBtn') return; // Handled separately
+                
+                showSection(sectionId);
+                updateActiveNav(document.querySelector(`[data-section="${sectionId}"]`));
             });
+        });
+        
+        // Apply filters button
+        document.getElementById('applyFilters').addEventListener('click', function() {
+            loadStudents(); // Reload students with filters applied
+        });
+        
+        // Firebase auth state observer
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                
+                try {
+                    // Get user profile
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    
+                    if (userDoc.exists) {
+                        userProfile = userDoc.data();
+                        updateNavigation(true);
+                        
+                        // If on auth pages, redirect to dashboard
+                        if (document.getElementById('login').classList.contains('active') || 
+                            document.getElementById('signup').classList.contains('active')) {
+                            showSection('dashboard');
+                            updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+                        }
+                    } else {
+                        // User document doesn't exist, sign out
+                        await auth.signOut();
+                        currentUser = null;
+                        showNotification('User profile not found. Please sign up.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error getting user profile:', error);
+                    await auth.signOut();
+                    currentUser = null;
+                }
+            } else {
+                // User is signed out
+                currentUser = null;
+                userProfile = null;
+                updateNavigation(false);
+                
+                // If on protected page, redirect to home
+                if (document.getElementById('dashboard').classList.contains('active') || 
+                    document.getElementById('browse').classList.contains('active') ||
+                    document.getElementById('messages').classList.contains('active') ||
+                    document.getElementById('profile').classList.contains('active')) {
+                    showSection('home');
+                    updateActiveNav(document.querySelector('[data-section="home"]'));
+                }
+            }
         });
     </script>
 </body>
