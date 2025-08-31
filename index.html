@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WCU Dating - Connect with Fellow Students</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase App and Firestore -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --primary-color: #6a1b9a;
@@ -146,6 +141,7 @@
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+            color: white;
         }
 
         .cta-buttons {
@@ -265,6 +261,7 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: var(--transition);
+            cursor: pointer;
         }
 
         .card:hover {
@@ -829,7 +826,7 @@
             </div>
 
             <div class="dashboard-cards">
-                <a href="#browse" class="card nav-link" data-section="browse">
+                <div class="card nav-link" data-section="browse">
                     <div class="card-img">
                         <i class="fas fa-users"></i>
                     </div>
@@ -837,8 +834,8 @@
                         <h3 class="card-title">Browse Students</h3>
                         <p>Find other WCU students to connect with</p>
                     </div>
-                </a>
-                <a href="#messages" class="card nav-link" data-section="messages">
+                </div>
+                <div class="card nav-link" data-section="messages">
                     <div class="card-img">
                         <i class="fas fa-envelope"></i>
                     </div>
@@ -846,8 +843,8 @@
                         <h3 class="card-title">Messages</h3>
                         <p>Check your conversations</p>
                     </div>
-                </a>
-                <a href="#profile" class="card nav-link" data-section="profile">
+                </div>
+                <div class="card nav-link" data-section="profile">
                     <div class="card-img">
                         <i class="fas fa-user-edit"></i>
                     </div>
@@ -855,8 +852,8 @@
                         <h3 class="card-title">My Profile</h3>
                         <p>View and edit your profile</p>
                     </div>
-                </a>
-                <a href="#home" class="card nav-link" data-section="home" id="logoutBtn">
+                </div>
+                <div class="card nav-link" data-section="home" id="logoutBtn">
                     <div class="card-img">
                         <i class="fas fa-sign-out-alt"></i>
                     </div>
@@ -864,7 +861,7 @@
                         <h3 class="card-title">Logout</h3>
                         <p>Sign out of your account</p>
                     </div>
-                </a>
+                </div>
             </div>
         </section>
 
@@ -1130,462 +1127,219 @@
     </footer>
 
     <script>
-        // Firebase configuration - Replace with your actual Firebase config
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "your-project-id.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project-id.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Navigation functionality
-            const navLinks = document.querySelectorAll('.nav-link');
-            const sections = document.querySelectorAll('.section');
-            const menuToggle = document.getElementById('menuToggle');
-            const navMenu = document.getElementById('navMenu');
-            
-            // Authentication state observer
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    // User is signed in
-                    showAuthenticatedNav();
-                    loadUserProfile(user.uid);
-                } else {
-                    // User is signed out
-                    showUnauthenticatedNav();
-                    showSection('home');
+        // Navigation functionality
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.section');
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        // Handle navigation clicks
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const sectionId = this.getAttribute('data-section');
+                showSection(sectionId);
+                updateActiveNav(this);
+                
+                // Close mobile menu after selection
+                if (window.innerWidth <= 768) {
+                    navMenu.classList.remove('show');
                 }
             });
-            
-            // Handle navigation clicks
+        });
+        
+        // Mobile menu toggle
+        menuToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('show');
+        });
+        
+        // Show the specified section and hide others
+        function showSection(sectionId) {
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+        
+        // Update active navigation link
+        function updateActiveNav(activeLink) {
             navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Handle logout button
-                    if (this.id === 'logoutBtn') {
-                        auth.signOut().then(() => {
-                            showNotification('Logged out successfully', 'success');
-                        }).catch((error) => {
-                            showNotification('Error signing out: ' + error.message, 'error');
-                        });
-                        return;
-                    }
-                    
-                    const sectionId = this.getAttribute('data-section');
-                    showSection(sectionId);
-                    updateActiveNav(this);
-                    
-                    // Close mobile menu after selection
-                    if (window.innerWidth <= 768) {
-                        navMenu.classList.remove('show');
-                    }
-                });
+                link.classList.remove('active');
             });
+            activeLink.classList.add('active');
+        }
+        
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
             
-            // Mobile menu toggle
-            menuToggle.addEventListener('click', function() {
-                navMenu.classList.toggle('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Simulate login functionality for demo
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Simple validation
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+            
+            // Simulate login process
+            showNotification('Login successful!', 'success');
+            
+            // Show authenticated navigation
+            document.getElementById('loginNav').style.display = 'none';
+            document.getElementById('signupNav').style.display = 'none';
+            document.getElementById('dashboardNav').style.display = 'list-item';
+            document.getElementById('browseNav').style.display = 'list-item';
+            document.getElementById('messagesNav').style.display = 'list-item';
+            document.getElementById('profileNav').style.display = 'list-item';
+            
+            // Show dashboard
+            showSection('dashboard');
+            updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+        });
+        
+        // Simulate signup functionality for demo
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simple validation
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            
+            // Simulate signup process
+            showNotification('Registration successful!', 'success');
+            
+            // Show authenticated navigation
+            document.getElementById('loginNav').style.display = 'none';
+            document.getElementById('signupNav').style.display = 'none';
+            document.getElementById('dashboardNav').style.display = 'list-item';
+            document.getElementById('browseNav').style.display = 'list-item';
+            document.getElementById('messagesNav').style.display = 'list-item';
+            document.getElementById('profileNav').style.display = 'list-item';
+            
+            // Show dashboard
+            showSection('dashboard');
+            updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+        });
+        
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Show unauthenticated navigation
+            document.getElementById('loginNav').style.display = 'list-item';
+            document.getElementById('signupNav').style.display = 'list-item';
+            document.getElementById('dashboardNav').style.display = 'none';
+            document.getElementById('browseNav').style.display = 'none';
+            document.getElementById('messagesNav').style.display = 'none';
+            document.getElementById('profileNav').style.display = 'none';
+            
+            // Show home section
+            showSection('home');
+            updateActiveNav(document.querySelector('[data-section="home"]'));
+            
+            showNotification('Logged out successfully', 'success');
+        });
+        
+        // Dashboard card navigation
+        document.querySelectorAll('.dashboard-cards .card').forEach(card => {
+            card.addEventListener('click', function() {
+                const sectionId = this.getAttribute('data-section');
+                showSection(sectionId);
+                updateActiveNav(document.querySelector(`[data-section="${sectionId}"]`));
             });
-            
-            // Show the specified section and hide others
-            function showSection(sectionId) {
-                sections.forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.getElementById(sectionId).classList.add('active');
-                
-                // Load section-specific data
-                if (sectionId === 'browse') {
-                    loadStudents();
-                } else if (sectionId === 'messages') {
-                    loadConversations();
-                }
-            }
-            
-            // Update active navigation link
-            function updateActiveNav(activeLink) {
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                });
-                activeLink.classList.add('active');
-            }
-            
-            // Show navigation for authenticated users
-            function showAuthenticatedNav() {
-                document.getElementById('loginNav').style.display = 'none';
-                document.getElementById('signupNav').style.display = 'none';
-                document.getElementById('dashboardNav').style.display = 'list-item';
-                document.getElementById('browseNav').style.display = 'list-item';
-                document.getElementById('messagesNav').style.display = 'list-item';
-                document.getElementById('profileNav').style.display = 'list-item';
-            }
-            
-            // Show navigation for unauthenticated users
-            function showUnauthenticatedNav() {
-                document.getElementById('loginNav').style.display = 'list-item';
-                document.getElementById('signupNav').style.display = 'list-item';
-                document.getElementById('dashboardNav').style.display = 'none';
-                document.getElementById('browseNav').style.display = 'none';
-                document.getElementById('messagesNav').style.display = 'none';
-                document.getElementById('profileNav').style.display = 'none';
-            }
-            
-            // Show notification
-            function showNotification(message, type) {
-                const notification = document.getElementById('notification');
-                notification.textContent = message;
-                notification.className = `notification ${type} show`;
-                
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            }
-            
-            // Toggle button loading state
-            function toggleButtonLoading(buttonId, spinnerId, textId, isLoading) {
-                const button = document.getElementById(buttonId);
-                const spinner = document.getElementById(spinnerId);
-                const text = document.getElementById(textId);
-                
-                if (isLoading) {
-                    button.disabled = true;
-                    spinner.style.display = 'inline-block';
-                    text.style.display = 'none';
-                } else {
-                    button.disabled = false;
-                    spinner.style.display = 'none';
-                    text.style.display = 'inline';
-                }
-            }
-            
-            // Load user profile
-            function loadUserProfile(userId) {
-                db.collection('users').doc(userId).get()
-                .then((doc) => {
-                    if (doc.exists) {
-                        const userData = doc.data();
-                        
-                        // Update dashboard
-                        document.getElementById('dashboardWelcome').textContent = `Welcome, ${userData.fullName}!`;
-                        document.getElementById('dashboardDetails').textContent = `${userData.department}, ${userData.year}`;
-                        document.getElementById('dashboardBio').textContent = `"${userData.bio}"`;
-                        
-                        if (userData.profilePhoto) {
-                            document.getElementById('dashboardProfileImg').src = userData.profilePhoto;
-                            document.getElementById('dashboardProfileImg').style.display = 'block';
-                            document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
-                        }
-                        
-                        // Update profile form
-                        document.getElementById('profileName').value = userData.fullName;
-                        document.getElementById('profileStudentId').value = userData.studentId;
-                        document.getElementById('profileDepartment').value = userData.department;
-                        document.getElementById('profileYear').value = userData.year;
-                        document.getElementById('profileBio').value = userData.bio;
-                        
-                        if (userData.profilePhoto) {
-                            document.getElementById('profilePhotoPreview').src = userData.profilePhoto;
-                            document.getElementById('profilePhotoPreview').style.display = 'block';
-                            document.getElementById('profilePhotoPlaceholder').style.display = 'none';
-                        }
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error loading user profile:', error);
-                });
-            }
-            
-            // Load students for browsing
-            function loadStudents(filters = {}) {
-                const studentsContainer = document.getElementById('studentsContainer');
-                studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
-                
-                let query = db.collection('users');
-                
-                // Apply filters
-                if (filters.department) {
-                    query = query.where('department', '==', filters.department);
-                }
-                if (filters.year) {
-                    query = query.where('year', '==', filters.year);
-                }
-                if (filters.gender) {
-                    query = query.where('gender', '==', filters.gender);
-                }
-                if (filters.religion) {
-                    query = query.where('religion', '==', filters.religion);
-                }
-                if (filters.personality) {
-                    query = query.where('personality', '==', filters.personality);
-                }
-                if (filters.lookingFor) {
-                    query = query.where('lookingFor', '==', filters.lookingFor);
-                }
-                
-                query.get()
-                .then((querySnapshot) => {
-                    studentsContainer.innerHTML = '';
-                    
-                    if (querySnapshot.empty) {
-                        studentsContainer.innerHTML = '<p style="text-align: center; width: 100%; padding: 2rem;">No students found matching your criteria.</p>';
-                        return;
-                    }
-                    
-                    const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
-                    
-                    querySnapshot.forEach((doc) => {
-                        // Don't show current user in browse results
-                        if (doc.id === currentUserId) return;
-                        
-                        const student = doc.data();
-                        const studentCard = document.createElement('div');
-                        studentCard.className = 'student-card';
-                        studentCard.innerHTML = `
-                            <div class="student-img">
-                                ${student.profilePhoto ? 
-                                    `<img src="${student.profilePhoto}" alt="${student.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                                    `<i class="fas fa-user"></i>`
-                                }
-                            </div>
-                            <div class="student-info">
-                                <h3 class="student-name">${student.fullName}</h3>
-                                <p class="student-details">${student.department}, ${student.year}</p>
-                                <p class="student-bio">${student.bio}</p>
-                                <button class="btn message-student-btn" style="width: 100%; margin-top: 1rem;" data-id="${doc.id}">Message</button>
-                            </div>
-                        `;
-                        
-                        studentsContainer.appendChild(studentCard);
-                    });
-                    
-                    // Add event listeners to message buttons
-                    document.querySelectorAll('.message-student-btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const userId = this.getAttribute('data-id');
-                            showSection('messages');
-                            // Here you would typically open a chat with this user
-                        });
-                    });
-                })
-                .catch((error) => {
-                    console.error('Error loading students:', error);
-                    studentsContainer.innerHTML = '<p style="text-align: center; width: 100%; padding: 2rem; color: var(--error-color);">Error loading students. Please try again.</p>';
-                });
-            }
-            
-            // Load conversations for messages section
-            function loadConversations() {
-                const conversationsList = document.getElementById('conversationsList');
-                conversationsList.innerHTML = '<div class="spinner"></div>';
-                
-                // This is a simplified implementation
-                // In a real app, you would query Firestore for the user's conversations
-                
-                setTimeout(() => {
-                    conversationsList.innerHTML = `
-                        <p style="text-align: center; padding: 2rem; color: #666;">
-                            Messaging feature coming soon!
-                        </p>
-                    `;
-                }, 1000);
-            }
-            
-            // Form submissions
-            const loginForm = document.getElementById('loginForm');
-            const signupForm = document.getElementById('signupForm');
-            const profileForm = document.getElementById('profileForm');
-            
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const email = document.getElementById('loginEmail').value;
-                    const password = document.getElementById('loginPassword').value;
-                    
-                    toggleButtonLoading('loginForm', 'loginSpinner', 'loginBtnText', true);
-                    
-                    auth.signInWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        showNotification('Login successful!', 'success');
-                        showSection('dashboard');
-                        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
-                    })
-                    .catch((error) => {
-                        showNotification('Login error: ' + error.message, 'error');
-                    })
-                    .finally(() => {
-                        toggleButtonLoading('loginForm', 'loginSpinner', 'loginBtnText', false);
-                    });
-                });
-            }
-            
-            if (signupForm) {
-                signupForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const email = document.getElementById('email').value;
-                    const password = document.getElementById('password').value;
-                    const confirmPassword = document.getElementById('confirmPassword').value;
-                    
-                    if (password !== confirmPassword) {
-                        showNotification('Passwords do not match', 'error');
-                        return;
-                    }
-                    
-                    toggleButtonLoading('signupForm', 'signupSpinner', 'signupBtnText', true);
-                    
-                    // Create user with email and password
-                    auth.createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        const user = userCredential.user;
-                        
-                        // Prepare user data
-                        const userData = {
-                            uid: user.uid,
-                            email: email,
-                            fullName: document.getElementById('fullName').value,
-                            studentId: document.getElementById('studentId').value,
-                            department: document.getElementById('department').value,
-                            year: document.getElementById('year').value,
-                            gender: document.getElementById('gender').value,
-                            lookingFor: document.getElementById('lookingFor').value,
-                            maritalStatus: document.getElementById('maritalStatus').value,
-                            relationshipExp: document.getElementById('relationshipExp').value,
-                            religion: document.getElementById('religion').value,
-                            personality: document.getElementById('personality').value,
-                            bio: document.getElementById('bio').value,
-                            phone: document.getElementById('phone').value,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        };
-                        
-                        // Handle profile photo upload if exists
-                        const profilePhoto = document.getElementById('profilePhoto').files[0];
-                        if (profilePhoto) {
-                            const storageRef = storage.ref(`profile_photos/${user.uid}`);
-                            return storageRef.put(profilePhoto)
-                            .then(snapshot => snapshot.ref.getDownloadURL())
-                            .then(url => {
-                                userData.profilePhoto = url;
-                                return db.collection('users').doc(user.uid).set(userData);
-                            });
-                        } else {
-                            return db.collection('users').doc(user.uid).set(userData);
-                        }
-                    })
-                    .then(() => {
-                        showNotification('Registration successful!', 'success');
-                        showSection('dashboard');
-                        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
-                    })
-                    .catch((error) => {
-                        showNotification('Registration error: ' + error.message, 'error');
-                    })
-                    .finally(() => {
-                        toggleButtonLoading('signupForm', 'signupSpinner', 'signupBtnText', false);
-                    });
-                });
-            }
-            
-            if (profileForm) {
-                profileForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const userId = auth.currentUser.uid;
-                    const userData = {
-                        fullName: document.getElementById('profileName').value,
-                        department: document.getElementById('profileDepartment').value,
-                        year: document.getElementById('profileYear').value,
-                        bio: document.getElementById('profileBio').value,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    toggleButtonLoading('profileForm', 'updateProfileSpinner', 'updateProfileBtnText', true);
-                    
-                    // Handle profile photo upload if changed
-                    const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
-                    if (profilePhoto) {
-                        const storageRef = storage.ref(`profile_photos/${userId}`);
-                        storageRef.put(profilePhoto)
-                        .then(snapshot => snapshot.ref.getDownloadURL())
-                        .then(url => {
-                            userData.profilePhoto = url;
-                            return db.collection('users').doc(userId).update(userData);
-                        })
-                        .then(() => {
-                            showNotification('Profile updated successfully!', 'success');
-                            loadUserProfile(userId); // Reload profile data
-                        })
-                        .catch((error) => {
-                            showNotification('Error updating profile: ' + error.message, 'error');
-                        })
-                        .finally(() => {
-                            toggleButtonLoading('profileForm', 'updateProfileSpinner', 'updateProfileBtnText', false);
-                        });
-                    } else {
-                        db.collection('users').doc(userId).update(userData)
-                        .then(() => {
-                            showNotification('Profile updated successfully!', 'success');
-                            loadUserProfile(userId); // Reload profile data
-                        })
-                        .catch((error) => {
-                            showNotification('Error updating profile: ' + error.message, 'error');
-                        })
-                        .finally(() => {
-                            toggleButtonLoading('profileForm', 'updateProfileSpinner', 'updateProfileBtnText', false);
-                        });
-                    }
-                });
-            }
-            
-            // Apply filters button
-            document.getElementById('applyFilters').addEventListener('click', function() {
-                const filters = {
-                    department: document.getElementById('filterDepartment').value,
-                    year: document.getElementById('filterYear').value,
-                    gender: document.getElementById('filterGender').value,
-                    religion: document.getElementById('filterReligion').value,
-                    personality: document.getElementById('filterPersonality').value,
-                    lookingFor: document.getElementById('filterLookingFor').value
+        });
+        
+        // Apply filters button
+        document.getElementById('applyFilters').addEventListener('click', function() {
+            showNotification('Filters applied', 'success');
+        });
+        
+        // Change profile photo button
+        document.getElementById('changePhotoBtn').addEventListener('click', function() {
+            document.getElementById('profilePhotoUpload').click();
+        });
+        
+        // Profile photo preview
+        document.getElementById('profilePhotoUpload').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profilePhotoPreview').src = e.target.result;
+                    document.getElementById('profilePhotoPreview').style.display = 'block';
+                    document.getElementById('profilePhotoPlaceholder').style.display = 'none';
                 };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Profile form submission
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showNotification('Profile updated successfully!', 'success');
+        });
+        
+        // Send message button
+        document.getElementById('sendMessageBtn').addEventListener('click', function() {
+            const messageInput = document.getElementById('messageInput');
+            const messageText = messageInput.value.trim();
+            
+            if (messageText === '') return;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message sent';
+            messageElement.innerHTML = `
+                <p>${messageText}</p>
+                <small>Just now</small>
+            `;
+            
+            chatMessages.appendChild(messageElement);
+            messageInput.value = '';
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        
+        // Simulate conversation clicks
+        const conversations = document.querySelectorAll('.conversation');
+        conversations.forEach(conv => {
+            conv.addEventListener('click', function() {
+                conversations.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
                 
-                loadStudents(filters);
-            });
-            
-            // Change profile photo button
-            document.getElementById('changePhotoBtn').addEventListener('click', function() {
-                document.getElementById('profilePhotoUpload').click();
-            });
-            
-            document.getElementById('profilePhotoUpload').addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        document.getElementById('profilePhotoPreview').src = e.target.result;
-                        document.getElementById('profilePhotoPreview').style.display = 'block';
-                        document.getElementById('profilePhotoPlaceholder').style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            
-            // Simulate conversation clicks
-            const conversations = document.querySelectorAll('.conversation');
-            conversations.forEach(conv => {
-                conv.addEventListener('click', function() {
-                    conversations.forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                });
+                document.getElementById('chatHeader').textContent = this.querySelector('h4').textContent;
+                document.getElementById('chatInput').style.display = 'flex';
+                
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = '';
+                
+                // Add sample received message
+                const receivedMessage = document.createElement('div');
+                receivedMessage.className = 'message received';
+                receivedMessage.innerHTML = `
+                    <p>Hello there! How are you doing today?</p>
+                    <small>2 minutes ago</small>
+                `;
+                chatMessages.appendChild(receivedMessage);
             });
         });
     </script>
