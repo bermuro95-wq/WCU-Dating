@@ -1615,11 +1615,34 @@ const firebaseConfig = {
                 chatHeader.textContent = otherUser.fullName;
                 
                 // Get messages for this conversation
-                const messagesSnapshot = await db.collection('conversations')
-                    .doc(conversationId)
-                    .collection('messages')
-                    .orderBy('timestamp', 'asc')
-                    .get();
+                
+const unsubscribe = db.collection('conversations')
+  .doc(conversationId)
+  .collection('messages')
+  .orderBy('timestamp', 'asc')
+  .onSnapshot((snapshot) => {
+    // This will update in real-time
+    updateChatMessages(snapshot);
+  });
+       
+       
+       function updateChatMessages(snapshot) {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
+    
+    snapshot.forEach((doc) => {
+        const message = doc.data();
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+        messageElement.innerHTML = `<p>${message.text}</p><small>${message.timestamp?.toDate().toLocaleTimeString() || 'Just now'}</small>`;
+        chatMessages.appendChild(messageElement);
+    });
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+       
+                
                 
                 chatMessages.innerHTML = '';
                 
@@ -1844,6 +1867,112 @@ const firebaseConfig = {
                 }
             }
         });
+        
+        
+        
+        
+// ====== REAL-TIME CHAT FIX ======
+// Clean up chat listeners
+function cleanupChatListeners() {
+  const chatInput = document.getElementById('chatInput');
+  if (chatInput.dataset.unsubscribe) {
+    chatInput.dataset.unsubscribe();
+    delete chatInput.dataset.unsubscribe;
+  }
+}
+
+// Replace the existing loadConversation function
+async function loadConversation(conversationId, otherUserId) {
+  const chatHeader = document.getElementById('chatHeader');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  
+  // Clean up any previous listeners
+  cleanupChatListeners();
+  
+  chatMessages.innerHTML = '<div class="spinner"></div>';
+  chatInput.style.display = 'none';
+  
+  try {
+    // Get other user's data
+    const otherUserDoc = await db.collection('users').doc(otherUserId).get();
+    if (!otherUserDoc.exists) {
+      chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">User not found.</p>';
+      return;
+    }
+    
+    const otherUser = otherUserDoc.data();
+    chatHeader.textContent = otherUser.fullName;
+    
+    // REAL-TIME MESSAGE LISTENER
+    const unsubscribe = db.collection('conversations')
+      .doc(conversationId)
+      .collection('messages')
+      .orderBy('timestamp', 'asc')
+      .onSnapshot((snapshot) => {
+        chatMessages.innerHTML = '';
+        
+        if (snapshot.empty) {
+          chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
+        } else {
+          snapshot.forEach((doc) => {
+            const message = doc.data();
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+            
+            const time = message.timestamp ? message.timestamp.toDate().toLocaleTimeString() : 'Just now';
+            
+            messageElement.innerHTML = `
+                            <p>${message.text}</p>
+                            <small>${time}</small>
+                        `;
+            
+            chatMessages.appendChild(messageElement);
+          });
+          
+          // Scroll to bottom
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Show chat input
+        chatInput.style.display = 'flex';
+      });
+    
+    // Store unsubscribe function for cleanup
+    chatInput.dataset.unsubscribe = unsubscribe;
+    
+  } catch (error) {
+    console.error('Error loading conversation:', error);
+    chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--error-color);">Error loading conversation.</p>';
+  }
+  
+  // Show chat input and set up event listener
+  chatInput.dataset.conversationId = conversationId;
+  chatInput.dataset.otherUserId = otherUserId;
+}
+
+// Update showSection to cleanup chat when leaving messages
+const originalShowSection = showSection;
+showSection = function(sectionId) {
+  // Clean up chat listeners when leaving messages section
+  if (document.getElementById('messages').classList.contains('active')) {
+    cleanupChatListeners();
+  }
+  
+  // Call the original function
+  originalShowSection(sectionId);
+};
+// ====== END REAL-TIME CHAT FIX ======
+        
+        
+        
+        
+        
     </script>
+    
+    
+    
+    
+    
 </body>
 </html>
