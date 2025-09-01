@@ -1818,33 +1818,38 @@ if (userProfile) {
         }
         currentUser = null;
     }
+
+
 } finally {
-    toggleButtonLoading('signup', false);
+toggleButtonLoading('signup', false);
 }
-            
-            
-            
-        // Load dashboard data
-        async function loadDashboard() {
-            if (!currentUser || !userProfile) return;
-            
-            document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName}!`;
-            document.getElementById('dashboardDetails').textContent = `${userProfile.department}, ${userProfile.year}`;
-            document.getElementById('dashboardBio').textContent = `"${userProfile.bio}"`;
-            
-            // Load profile image if available
-            if (userProfile.photoURL) {
-                document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
-                document.getElementById('dashboardProfileImg').style.display = 'block';
-                document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
-            } else {
-                document.getElementById('dashboardProfileImg').style.display = 'none';
-                document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
-            }
-        }
-        
-        // Load students for browsing with filters
-        async function loadStudents() {
+
+}); // ← This should be the closing of the signup event handler
+
+// Load dashboard data - MOVE THIS FUNCTION HERE
+async function loadDashboard() {
+if (!currentUser || !userProfile) return;
+
+document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName}!`;
+document.getElementById('dashboardDetails').textContent = `${userProfile.department}, ${userProfile.year}`;
+document.getElementById('dashboardBio').textContent = `"${userProfile.bio}"`;
+
+// Load profile image if available
+if (userProfile.photoURL) {
+document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
+document.getElementById('dashboardProfileImg').style.display = 'block';
+document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
+} else {
+document.getElementById('dashboardProfileImg').style.display = 'none';
+document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
+}
+}
+
+// Load students for browsing with filters
+async function loadStudents() {
+
+
+
             const studentsContainer = document.getElementById('studentsContainer');
             studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
             
