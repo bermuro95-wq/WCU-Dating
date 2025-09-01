@@ -1537,23 +1537,42 @@
         }
         
         // Update active navigation link
-        function updateActiveNav(activeLink) {
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-            });
-            activeLink.classList.add('active');
-        }
         
-        // Show notification
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+// Update active navigation link
+function updateActiveNav(activeLink) {
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+    });
+    activeLink.classList.add('active');
+}
+
+// Add this function to load user profile from Firestore
+async function loadUserProfile(uid) {
+    try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+            userProfile = userDoc.data();
+            return userProfile;
         }
+        return null;
+    } catch (error) {
+        console.error('Error loading user profile:', error);
+        return null;
+    }
+}
+
+// Show notification
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type} show`;
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+        
+        
         
         // Toggle loading state for buttons
         function toggleButtonLoading(buttonId, isLoading) {
@@ -1591,45 +1610,54 @@
                 
                 // Get user profile from Firestore
                 
-// Get user profile from Firestore
-const userDoc = await db.collection('users').doc(currentUser.uid).get();
 
-if (userDoc.exists) {
-  userProfile = userDoc.data();
-  showNotification('Login successful!', 'success');
-  
-  // Update navigation
-  updateNavigation(true);
-  
-  // Show dashboard
-  showSection('dashboard');
-  updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+
+           
+// Get user profile using the new function
+userProfile = await loadUserProfile(currentUser.uid);
+
+if (userProfile) {
+    showNotification('Login successful!', 'success');
+    
+    // Update user online status
+    await db.collection('users').doc(currentUser.uid).update({
+        isOnline: true,
+        lastSeen: new Date()
+    });
+    
+    // Update navigation
+    updateNavigation(true);
+    
+    // Show dashboard
+    showSection('dashboard');
+    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
 } else {
-  // If profile doesn't exist, create a basic one
-  showNotification('Creating your profile...', 'warning');
-  
-  const userProfileData = {
-    uid: currentUser.uid,
-    email: currentUser.email,
-    fullName: currentUser.displayName || "New User",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    isOnline: true,
-    lastSeen: new Date()
-  };
-  
-  await db.collection('users').doc(currentUser.uid).set(userProfileData);
-  userProfile = userProfileData;
-  
-  showNotification('Profile created successfully!', 'success');
-  
-  // Update navigation
-  updateNavigation(true);
-  
-  // Show dashboard
-  showSection('dashboard');
-  updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+    // If profile doesn't exist, create a basic one
+    showNotification('Creating your profile...', 'warning');
+    
+    const userProfileData = {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        fullName: currentUser.displayName || "New User",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        isOnline: true,
+        lastSeen: new Date()
+    };
+    
+    await db.collection('users').doc(currentUser.uid).set(userProfileData);
+    userProfile = userProfileData;
+    
+    showNotification('Profile created successfully!', 'success');
+    
+    // Update navigation
+    updateNavigation(true);
+    
+    // Show dashboard
+    showSection('dashboard');
+    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
 }
+           
                 
                 
                 
@@ -2351,31 +2379,35 @@ await db.collection('users').doc(currentUser.uid).set(userProfileData);
                 
                 try {
                     // Get user profile
-                    const userDoc = await db.collection('users').doc(user.uid).get();
                     
-                    if (userDoc.exists) {
-                        userProfile = userDoc.data();
-                        
-                        // Update user online status
-                        await db.collection('users').doc(user.uid).update({
-                            isOnline: true,
-                            lastSeen: new Date()
-                        });
-                        
-                        updateNavigation(true);
-                        
-                        // If on auth pages, redirect to dashboard
-                        if (document.getElementById('login').classList.contains('active') || 
-                            document.getElementById('signup').classList.contains('active')) {
-                            showSection('dashboard');
-                            updateActiveNav(document.querySelector('[data-section="dashboard"]'));
-                        }
-                    } else {
-                        // User document doesn't exist, sign out
-                        await auth.signOut();
-                        currentUser = null;
-                        showNotification('User profile not found. Please sign up.', 'error');
-                    }
+                    
+// Load user profile using the new function
+userProfile = await loadUserProfile(user.uid);
+
+if (userProfile) {
+    // Update user online status
+    await db.collection('users').doc(user.uid).update({
+        isOnline: true,
+        lastSeen: new Date()
+    });
+    
+    updateNavigation(true);
+    
+    // If on auth pages, redirect to dashboard
+    if (document.getElementById('login').classList.contains('active') ||
+        document.getElementById('signup').classList.contains('active')) {
+        showSection('dashboard');
+        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+    }
+} else {
+    // User document doesn't exist, sign out
+    await auth.signOut();
+    currentUser = null;
+    showNotification('User profile not found. Please sign up.', 'error');
+}
+                    
+                    
+                    
                 } catch (error) {
                     console.error('Error getting user profile:', error);
                     await auth.signOut();
