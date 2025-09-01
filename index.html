@@ -1930,15 +1930,27 @@ document.getElementById('profileForm').addEventListener('submit', async function
         };
         
         // Upload new profile photo if selected
-        if (profilePhoto) {
-            const storageRef = storage.ref();
-            const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-            await photoRef.put(profilePhoto);
-            updates.photoURL = await photoRef.getDownloadURL();
-        }
+        
+// Upload new profile photo if selected
+if (profilePhoto) {
+    console.log('Uploading profile photo...');
+    const storageRef = storage.ref();
+    const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+    await photoRef.put(profilePhoto);
+    updates.photoURL = await photoRef.getDownloadURL();
+    console.log('Photo uploaded, URL:', updates.photoURL);
+}
+        
         
         // Update user profile in Firestore
-        await db.collection('users').doc(currentUser.uid).update(updates);
+        
+// Debug logging
+console.log('Updating profile with data:', updates);
+console.log('Current user UID:', currentUser.uid);
+
+// Update user profile in Firestore
+await db.collection('users').doc(currentUser.uid).update(updates);
+        
         
         // Refresh the user profile from Firestore to get the latest data
         userProfile = await loadUserProfile(currentUser.uid);
