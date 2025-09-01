@@ -1781,15 +1781,18 @@ try {
     
     console.log('User profile created successfully in Firestore');
     
-    // Load the profile to verify it was created
-    userProfile = await loadUserProfile(currentUser.uid);
+
     
-    
+// Load the profile to verify it was created
+userProfile = await loadUserProfile(currentUser.uid);
+
 if (userProfile) {
     showNotification('Registration successful!', 'success');
     
     // Load dashboard first to ensure data is available
-    loadDashboard();
+    if (typeof loadDashboard === 'function') {
+        loadDashboard();
+    }
     
     // Update navigation (this should happen after data is loaded)
     updateNavigation(true);
@@ -2043,13 +2046,27 @@ await db.collection('users').doc(currentUser.uid).update(updates);
         
         
         // Refresh the user profile from Firestore to get the latest data
-        userProfile = await loadUserProfile(currentUser.uid);
         
-        showNotification('Profile updated successfully!', 'success');
         
-        // Reload ALL sections that display profile data
+// Refresh the user profile from Firestore to get the latest data
+userProfile = await loadUserProfile(currentUser.uid);
+
+if (userProfile) {
+    showNotification('Profile updated successfully!', 'success');
+    
+    // Reload ALL sections that display profile data
+    if (typeof loadDashboard === 'function') {
         loadDashboard();
-        loadProfile(); // Reload the profile form to show updated data
+    }
+    if (typeof loadProfile === 'function') {
+        loadProfile();
+    }
+} else {
+    showNotification('Profile update failed', 'error');
+}
+        
+        
+        
         
     } catch (error) {
         console.error('Error updating profile:', error);
