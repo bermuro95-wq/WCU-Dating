@@ -1931,16 +1931,51 @@ document.getElementById('profileForm').addEventListener('submit', async function
         
         // Upload new profile photo if selected
         
+
+
 // Upload new profile photo if selected
 if (profilePhoto) {
     console.log('Uploading profile photo...');
-    const storageRef = storage.ref();
-    const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-    await photoRef.put(profilePhoto);
-    updates.photoURL = await photoRef.getDownloadURL();
-    console.log('Photo uploaded, URL:', updates.photoURL);
-}
+    try {
+        const storageRef = storage.ref();
+        const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
         
+        // Create upload task with progress monitoring
+        const uploadTask = photoRef.put(profilePhoto);
+        
+        // Wait for upload to complete
+        await new Promise((resolve, reject) => {
+            uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                    // Show upload progress
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload progress: ' + progress + '%');
+                },
+                (error) => {
+                    // Upload failed
+                    console.error('Photo upload failed:', error);
+                    reject(error);
+                },
+                async () => {
+                    // Upload completed successfully
+                    try {
+                        updates.photoURL = await photoRef.getDownloadURL();
+                        console.log('Photo uploaded, URL:', updates.photoURL);
+                        resolve();
+                    } catch (urlError) {
+                        console.error('Error getting download URL:', urlError);
+                        reject(urlError);
+                    }
+                }
+            );
+        });
+    } catch (uploadError) {
+        console.error('Photo upload failed completely:', uploadError);
+        showNotification('Photo upload failed, but other profile changes were saved', 'warning');
+        // Continue with profile update without the photo
+    }
+}
         
         // Update user profile in Firestore
         
