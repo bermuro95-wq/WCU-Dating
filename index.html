@@ -1784,18 +1784,26 @@ try {
     // Load the profile to verify it was created
     userProfile = await loadUserProfile(currentUser.uid);
     
-    if (userProfile) {
-        showNotification('Registration successful!', 'success');
-        
-        // Update navigation
-        updateNavigation(true);
-        
-        // Show dashboard
-        showSection('dashboard');
-        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
-    } else {
-        throw new Error('Failed to create user profile');
-    }
+    
+if (userProfile) {
+    showNotification('Registration successful!', 'success');
+    
+    // Load dashboard first to ensure data is available
+    loadDashboard();
+    
+    // Update navigation (this should happen after data is loaded)
+    updateNavigation(true);
+    
+    // Show dashboard
+    showSection('dashboard');
+    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+} else {
+    throw new Error('Failed to create user profile');
+}
+    
+    
+    
+    
 } catch (error) {
     console.error('Signup error:', error);
     showNotification(error.message, 'error');
