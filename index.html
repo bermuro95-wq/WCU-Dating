@@ -1903,58 +1903,62 @@ await db.collection('users').doc(currentUser.uid).set(userProfileData);
             }
         }
         
-        // Update profile
-        document.getElementById('profileForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!currentUser) return;
-            
-            const fullName = document.getElementById('profileName').value;
-            const department = document.getElementById('profileDepartment').value;
-            const year = document.getElementById('profileYear').value;
-            const interests = document.getElementById('profileInterests').value;
-            const bio = document.getElementById('profileBio').value;
-            const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
-            
-            toggleButtonLoading('updateProfile', true);
-            
-            try {
-                let updates = {
-                    fullName: fullName,
-                    department: department,
-                    year: year,
-                    interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
-                    bio: bio,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // Upload new profile photo if selected
-                if (profilePhoto) {
-                    const storageRef = storage.ref();
-                    const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-                    await photoRef.put(profilePhoto);
-                    updates.photoURL = await photoRef.getDownloadURL();
-                }
-                
-                // Update user profile in Firestore
-                await db.collection('users').doc(currentUser.uid).update(updates);
-                
-                // Update local user profile
-                userProfile = {...userProfile, ...updates};
-                
-                showNotification('Profile updated successfully!', 'success');
-                
-                // Reload dashboard if needed
-                if (document.getElementById('dashboard').classList.contains('active')) {
-                    loadDashboard();
-                }
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                showNotification(error.message, 'error');
-            } finally {
-                toggleButtonLoading('updateProfile', false);
-            }
-        });
+        
+// Update profile
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!currentUser) return;
+    
+    const fullName = document.getElementById('profileName').value;
+    const department = document.getElementById('profileDepartment').value;
+    const year = document.getElementById('profileYear').value;
+    const interests = document.getElementById('profileInterests').value;
+    const bio = document.getElementById('profileBio').value;
+    const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
+    
+    toggleButtonLoading('updateProfile', true);
+    
+    try {
+        let updates = {
+            fullName: fullName,
+            department: department,
+            year: year,
+            interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
+            bio: bio,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Upload new profile photo if selected
+        if (profilePhoto) {
+            const storageRef = storage.ref();
+            const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+            await photoRef.put(profilePhoto);
+            updates.photoURL = await photoRef.getDownloadURL();
+        }
+        
+        // Update user profile in Firestore
+        await db.collection('users').doc(currentUser.uid).update(updates);
+        
+        // Refresh the user profile from Firestore to get the latest data
+        userProfile = await loadUserProfile(currentUser.uid);
+        
+        showNotification('Profile updated successfully!', 'success');
+        
+        // Reload ALL sections that display profile data
+        loadDashboard();
+        loadProfile(); // Reload the profile form to show updated data
+        
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showNotification(error.message, 'error');
+    } finally {
+        toggleButtonLoading('updateProfile', false);
+    }
+});
+        
+        
+        
         
         // Change profile photo button
         document.getElementById('changePhotoBtn').addEventListener('click', function() {
