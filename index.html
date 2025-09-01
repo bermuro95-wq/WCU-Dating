@@ -1929,53 +1929,55 @@ document.getElementById('profileForm').addEventListener('submit', async function
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         
-        // Upload new profile photo if selected
         
-
-
+        
 // Upload new profile photo if selected
 if (profilePhoto) {
-    console.log('Uploading profile photo...');
+    // Check file size (max 2MB)
+    if (profilePhoto.size > 2 * 1024 * 1024) {
+        showNotification('Please select an image smaller than 2MB', 'error');
+        toggleButtonLoading('updateProfile', false);
+        return;
+    }
+    
+    console.log('Uploading profile photo...', profilePhoto);
+    
     try {
         const storageRef = storage.ref();
         const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
         
-        // Create upload task with progress monitoring
-        const uploadTask = photoRef.put(profilePhoto);
+        console.log('Storage reference created');
         
-        // Wait for upload to complete
-        await new Promise((resolve, reject) => {
-            uploadTask.on(
-                'state_changed',
-                (snapshot) => {
-                    // Show upload progress
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    console.log('Upload progress: ' + progress + '%');
-                },
-                (error) => {
-                    // Upload failed
-                    console.error('Photo upload failed:', error);
-                    reject(error);
-                },
-                async () => {
-                    // Upload completed successfully
-                    try {
-                        updates.photoURL = await photoRef.getDownloadURL();
-                        console.log('Photo uploaded, URL:', updates.photoURL);
-                        resolve();
-                    } catch (urlError) {
-                        console.error('Error getting download URL:', urlError);
-                        reject(urlError);
-                    }
-                }
-            );
-        });
+        // Simple upload with detailed error handling
+        const snapshot = await photoRef.put(profilePhoto);
+        console.log('Upload completed, snapshot:', snapshot);
+        
+        // Get download URL
+        const downloadURL = await photoRef.getDownloadURL();
+        console.log('Download URL obtained:', downloadURL);
+        
+        updates.photoURL = downloadURL;
+        console.log('Photo uploaded successfully, URL:', updates.photoURL);
+        
     } catch (uploadError) {
-        console.error('Photo upload failed completely:', uploadError);
-        showNotification('Photo upload failed, but other profile changes were saved', 'warning');
+        console.error('Photo upload failed with details:', uploadError);
+        console.error('Error code:', uploadError.code);
+        console.error('Error message:', uploadError.message);
+        
+        // Check specific error types
+        if (uploadError.code === 'storage/unauthorized') {
+            showNotification('Photo upload failed: Storage permissions error', 'error');
+        } else if (uploadError.code === 'storage/unknown') {
+            showNotification('Photo upload failed: Network error', 'error');
+        } else {
+            showNotification('Photo upload failed: ' + uploadError.message, 'error');
+        }
+        
         // Continue with profile update without the photo
     }
 }
+        
+
         
         // Update user profile in Firestore
         
