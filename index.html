@@ -2622,34 +2622,42 @@ function showMessageNotification(senderName, messageText) {
 
 // Listen for new messages in real-time
 function setupMessageListeners() {
-    if (!currentUser) return;
-    
-    // Listen to all conversations where user is participant
-    db.collection('conversations')
-        .where('participants', 'array-contains', currentUser.uid)
-        .onSnapshot((snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === 'modified') {
-                    const conversation = change.doc.data();
-                    
-                    // Check if this is a new message (not from current user)
-                    if (conversation.lastUpdated &&
-                        conversation.lastMessage &&
-                        conversation.lastMessageSender !== currentUser.uid) {
-                        
-                        // Get sender info
-                        db.collection('users').doc(conversation.lastMessageSender).get()
-                            .then((senderDoc) => {
-                                if (senderDoc.exists) {
-                                    const sender = senderDoc.data();
-                                    showMessageNotification(sender.fullName, conversation.lastMessage);
-                                }
-                            });
-                    }
-                }
-            });
-        });
+if (!currentUser) return;
+
+console.log('Setting up message listeners for user:', currentUser.uid);
+
+// Listen to all conversations where user is participant
+db.collection('conversations')
+.where('participants', 'array-contains', currentUser.uid)
+.onSnapshot((snapshot) => {
+console.log('Conversation update detected');
+snapshot.docChanges().forEach((change) => {
+console.log('Change type:', change.type);
+if (change.type === 'modified') {
+const conversation = change.doc.data();
+console.log('Modified conversation:', conversation);
+
+// Check if this is a new message (not from current user)
+if (conversation.lastUpdated &&
+conversation.lastMessage &&
+conversation.lastMessageSender !== currentUser.uid) {
+
+console.log('New message from someone else detected');
+// Get sender info
+db.collection('users').doc(conversation.lastMessageSender).get()
+.then((senderDoc) => {
+if (senderDoc.exists) {
+const sender = senderDoc.data();
+console.log('Showing notification from:', sender.fullName);
+showMessageNotification(sender.fullName, conversation.lastMessage);
 }
+});
+}
+}
+});
+});
+}
+
 
 // Call this function when user logs in - FIND the auth state observer and ADD this line:
 // setupMessageListeners();
