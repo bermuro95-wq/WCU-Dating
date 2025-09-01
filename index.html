@@ -840,6 +840,29 @@
         .highlight {
             animation: highlight 2s ease;
         }
+        
+        
+/* Enhanced notification styles */
+.notification {
+    max-width: 400px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
+
+.notification i {
+    font-size: 1.5rem;
+}
+
+.notification p {
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+        
+        
+        
+        
+        
     </style>
 </head>
 <body>
@@ -1625,6 +1648,8 @@ if (userProfile) {
         lastSeen: new Date()
     });
     
+setupMessageListeners();
+    
     // Update navigation
     updateNavigation(true);
     
@@ -2248,6 +2273,16 @@ await db.collection('users').doc(currentUser.uid).update(updates);
                         lastMessage: messageText,
                         lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                     });
+                    
+// Update conversation last message and timestamp
+await db.collection('conversations')
+    .doc(conversationId)
+    .update({
+        lastMessage: messageText,
+        lastMessageSender: currentUser.uid, // ← ADD THIS LINE
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+                    
                 
                 // Clear input
                 messageInput.value = '';
@@ -2547,6 +2582,95 @@ if (userProfile) {
                 }
             }
         });
+        
+        
+        
+        
+// ===== MESSAGE NOTIFICATION SYSTEM =====
+
+// Show message notification
+function showMessageNotification(senderName, messageText) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification success show';
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center;">
+            <i class="fas fa-envelope" style="margin-right: 10px;"></i>
+            <div>
+                <strong>New message from ${senderName}</strong>
+                <p>${messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText}</p>
+            </div>
+        </div>
+    `;
+    
+    // Add click to open messages
+    notification.style.cursor = 'pointer';
+    notification.addEventListener('click', function() {
+        showSection('messages');
+        updateActiveNav(document.querySelector('[data-section="messages"]'));
+    });
+    
+    // Add to notification container
+    const container = document.getElementById('notification');
+    container.parentNode.insertBefore(notification, container.nextSibling);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Listen for new messages in real-time
+function setupMessageListeners() {
+    if (!currentUser) return;
+    
+    // Listen to all conversations where user is participant
+    db.collection('conversations')
+        .where('participants', 'array-contains', currentUser.uid)
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'modified') {
+                    const conversation = change.doc.data();
+                    
+                    // Check if this is a new message (not from current user)
+                    if (conversation.lastUpdated &&
+                        conversation.lastMessage &&
+                        conversation.lastMessageSender !== currentUser.uid) {
+                        
+                        // Get sender info
+                        db.collection('users').doc(conversation.lastMessageSender).get()
+                            .then((senderDoc) => {
+                                if (senderDoc.exists) {
+                                    const sender = senderDoc.data();
+                                    showMessageNotification(sender.fullName, conversation.lastMessage);
+                                }
+                            });
+                    }
+                }
+            });
+        });
+}
+
+// Call this function when user logs in - FIND the auth state observer and ADD this line:
+// setupMessageListeners();
+
+// Also update the send message function to include sender ID - FIND this code:
+// await db.collection('conversations').doc(conversationId).update({
+//     lastMessage: messageText,
+//     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+// });
+
+// AND ADD this line to make it:
+// await db.collection('conversations').doc(conversationId).update({
+//     lastMessage: messageText,
+//     lastMessageSender: currentUser.uid, // ADD THIS LINE
+//     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+// });
+        
+        
+        
+        
+        
     </script>
 </body>
 </html>
