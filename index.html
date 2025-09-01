@@ -1774,6 +1774,9 @@ try {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
+await db.collection('users').doc(currentUser.uid).set(userProfileData);
+    
+    
     console.log('Creating user profile in Firestore:', userProfileData);
     
     // CREATE PROFILE IN FIRESTORE
