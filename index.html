@@ -1726,81 +1726,96 @@ setupMessageListeners();
             
             toggleButtonLoading('signup', true);
             
-            try {
-                // Create user with Firebase Authentication
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                currentUser = userCredential.user;
-                
-                let photoURL = null;
-                // Upload profile photo if selected
-                if (profilePhoto) {
-                    const storageRef = storage.ref();
-                    const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-                    await photoRef.put(profilePhoto);
-                    photoURL = await photoRef.getDownloadURL();
-                }
-                
-                // Create user profile in Firestore
-                
-                
-                
-// Create user profile in Firestore
-const userProfileData = {
-  uid: currentUser.uid,
-  email: email,
-  fullName: fullName,
-  studentId: studentId,
-  department: department,
-  year: year,
-  gender: gender,
-  lookingFor: lookingFor,
-  maritalStatus: maritalStatus,
-  relationshipExp: relationshipExp,
-  religion: religion,
-  personality: personality,
-  interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
-  bio: bio,
-  phone: phone,
-  photoURL: photoURL,
-  isOnline: false,
-  lastSeen: new Date(),
-  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-};
-
-// ADD THIS LINE TO CREATE THE FIRESTORE DOCUMENT
-await db.collection('users').doc(currentUser.uid).set(userProfileData);
-userProfile = userProfileData;
-              
-await db.collection('users').doc(currentUser.uid).set(userProfileData);
-                
-                
-                
-                await db.collection('users').doc(currentUser.uid).set(userProfileData);
-                userProfile = userProfileData;
-                
-                showNotification('Registration successful!', 'success');
-                
-                // Update navigation
-                updateNavigation(true);
-                
-                // Show dashboard
-                showSection('dashboard');
-                updateActiveNav(document.querySelector('[data-section="dashboard"]'));
-            } catch (error) {
-                console.error('Signup error:', error);
-                showNotification(error.message, 'error');
-                
-                // Delete user if profile creation failed
-                if (currentUser) {
-                    await currentUser.delete();
-                    currentUser = null;
-                }
-            } finally {
-                toggleButtonLoading('signup', false);
-            }
-        });
+            
+try {
+    // Create user with Firebase Authentication
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    currentUser = userCredential.user;
+    
+    console.log('User created in Authentication:', currentUser.uid);
+    
+    let photoURL = null;
+    // Upload profile photo if selected
+    if (profilePhoto) {
+        console.log('Uploading profile photo...');
+        try {
+            const storageRef = storage.ref();
+            const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+            await photoRef.put(profilePhoto);
+            photoURL = await photoRef.getDownloadURL();
+            console.log('Profile photo uploaded:', photoURL);
+        } catch (photoError) {
+            console.error('Profile photo upload failed:', photoError);
+            showNotification('Profile photo upload failed, but account was created', 'warning');
+        }
+    }
+    
+    // Create user profile in Firestore
+    const userProfileData = {
+        uid: currentUser.uid,
+        email: email,
+        fullName: fullName,
+        studentId: studentId,
+        department: department,
+        year: year,
+        gender: gender,
+        lookingFor: lookingFor,
+        maritalStatus: maritalStatus,
+        relationshipExp: relationshipExp,
+        religion: religion,
+        personality: personality,
+        interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
+        bio: bio,
+        phone: phone || '',
+        photoURL: photoURL,
+        isOnline: true,
+        lastSeen: new Date(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+    console.log('Creating user profile in Firestore:', userProfileData);
+    
+    // CREATE PROFILE IN FIRESTORE
+    await db.collection('users').doc(currentUser.uid).set(userProfileData);
+    
+    console.log('User profile created successfully in Firestore');
+    
+    // Load the profile to verify it was created
+    userProfile = await loadUserProfile(currentUser.uid);
+    
+    if (userProfile) {
+        showNotification('Registration successful!', 'success');
         
+        // Update navigation
+        updateNavigation(true);
+        
+        // Show dashboard
+        showSection('dashboard');
+        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+    } else {
+        throw new Error('Failed to create user profile');
+    }
+} catch (error) {
+    console.error('Signup error:', error);
+    showNotification(error.message, 'error');
+    
+    // Delete user if profile creation failed
+    if (currentUser) {
+        try {
+            await currentUser.delete();
+            console.log('User deleted from Authentication due to profile creation failure');
+        } catch (deleteError) {
+            console.error('Error deleting user:', deleteError);
+        }
+        currentUser = null;
+    }
+} finally {
+    toggleButtonLoading('signup', false);
+}
+            
+            
+            
         // Load dashboard data
         async function loadDashboard() {
             if (!currentUser || !userProfile) return;
