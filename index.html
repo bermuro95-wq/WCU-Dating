@@ -1794,36 +1794,28 @@ document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
 }
 }
 
+
 // Load students for browsing with filters
 async function loadStudents() {
+const studentsContainer = document.getElementById('studentsContainer');
+studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
+
+try {
+let query = db.collection('users').where('uid', '!=', currentUser.uid);
+
+// Apply filters if any - FIXED VERSION
+if (activeFilters.department) {
+query = query.where('department', '==', activeFilters.department);
+}
+
+if (activeFilters.year) {
+query = query.where('year', '==', activeFilters.year);
+}
+
+const usersSnapshot = await query.get();
 
 
 
-            const studentsContainer = document.getElementById('studentsContainer');
-            studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
-            
-            try {
-                let query = db.collection('users').where('uid', '!=', currentUser.uid);
-                
-                // Apply filters if any
-                if (Object.keys(activeFilters).length > 0) {
-                    for (const [key, value] of Object.entries(activeFilters)) {
-                        if (value) {
-                            if (key === 'interests') {
-                                // For interests, we need to check if array contains any of the values
-                                const interestTerms = value.split(',').map(item => item.trim());
-                                // This is a simplification - Firestore doesn't support OR queries natively
-                                // In a real app, you might need a different approach
-                                query = query.where('interests', 'array-contains-any', interestTerms);
-                            } else {
-                                query = query.where(key, '==', value);
-                            }
-                        }
-                    }
-                }
-                
-                const usersSnapshot = await query.get();
-                
                 studentsContainer.innerHTML = '';
                 
                 if (usersSnapshot.empty) {
@@ -2291,9 +2283,14 @@ await db.collection('conversations')
             }
         });
         
+       // Filter functionality - ONLY department and year 
        
 // Filter functionality - ONLY department and year
+
 document.getElementById('applyFilters').addEventListener('click', function() {
+       
+       
+
     // Get only department and year filter values
     activeFilters = {
         department: document.getElementById('filterDepartment').value,
