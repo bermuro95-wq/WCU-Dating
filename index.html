@@ -1796,24 +1796,44 @@ toggleButtonLoading('signup', false);
 
 }); // ← This should be the closing of the signup event handler
 
-// Load dashboard data - MOVE THIS FUNCTION HERE
+
+// Load dashboard data
 async function loadDashboard() {
-if (!currentUser || !userProfile) return;
-
-document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName}!`;
-document.getElementById('dashboardDetails').textContent = `${userProfile.department}, ${userProfile.year}`;
-document.getElementById('dashboardBio').textContent = `"${userProfile.bio}"`;
-
-// Load profile image if available
-if (userProfile.photoURL) {
-document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
-document.getElementById('dashboardProfileImg').style.display = 'block';
-document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
-} else {
-document.getElementById('dashboardProfileImg').style.display = 'none';
-document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
+    if (!currentUser) return;
+    
+    try {
+        // Make sure we have the latest profile data
+        userProfile = await loadUserProfile(currentUser.uid);
+        
+        if (userProfile) {
+            document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName || 'Student'}!`;
+            document.getElementById('dashboardDetails').textContent = `${userProfile.department || 'Department'}, ${userProfile.year || 'Year'}`;
+            document.getElementById('dashboardBio').textContent = `"${userProfile.bio || 'No bio yet.'}"`;
+            
+            // Load profile image if available
+            if (userProfile.photoURL) {
+                document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
+                document.getElementById('dashboardProfileImg').style.display = 'block';
+                document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('dashboardProfileImg').style.display = 'none';
+                document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
+            }
+        } else {
+            // If profile doesn't exist yet, show generic message
+            document.getElementById('dashboardWelcome').textContent = 'Welcome, Student!';
+            document.getElementById('dashboardDetails').textContent = 'Department, Year';
+            document.getElementById('dashboardBio').textContent = '"Complete your profile to get started."';
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        document.getElementById('dashboardWelcome').textContent = 'Welcome!';
+        document.getElementById('dashboardDetails').textContent = 'Error loading profile';
+        document.getElementById('dashboardBio').textContent = '"Please try refreshing the page."';
+    }
 }
-}
+
+
 
 
 // Load students for browsing with filters
@@ -1896,16 +1916,21 @@ const usersSnapshot = await query.get();
             }
         }
         
-        // Load user profile
-        function loadProfile() {
-            if (!currentUser || !userProfile) return;
-            
-            document.getElementById('profileName').value = userProfile.fullName;
-            document.getElementById('profileStudentId').value = userProfile.studentId;
-            document.getElementById('profileDepartment').value = userProfile.department;
-            document.getElementById('profileYear').value = userProfile.year;
+// Load user profile
+async function loadProfile() {
+    if (!currentUser) return;
+    
+    try {
+        // Make sure we have the latest profile data
+        userProfile = await loadUserProfile(currentUser.uid);
+        
+        if (userProfile) {
+            document.getElementById('profileName').value = userProfile.fullName || '';
+            document.getElementById('profileStudentId').value = userProfile.studentId || '';
+            document.getElementById('profileDepartment').value = userProfile.department || '';
+            document.getElementById('profileYear').value = userProfile.year || '';
             document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
-            document.getElementById('profileBio').value = userProfile.bio;
+            document.getElementById('profileBio').value = userProfile.bio || '';
             
             // Load profile image if available
             if (userProfile.photoURL) {
@@ -1916,7 +1941,17 @@ const usersSnapshot = await query.get();
                 document.getElementById('profilePhotoPreview').style.display = 'none';
                 document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
             }
+        } else {
+            showNotification('Could not load profile data', 'error');
         }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        showNotification('Error loading profile', 'error');
+    }
+}
+        
+        
+        
         
         
 // Update profile
@@ -2681,6 +2716,114 @@ showMessageNotification(sender.fullName, conversation.lastMessage);
 //     lastMessageSender: currentUser.uid, // ADD THIS LINE
 //     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
 // });
+        
+        
+        
+        
+        
+        // ===== FIX FOR PROFILE LOADING ISSUE =====
+// Override the loadUserProfile function to be more reliable
+const originalLoadUserProfile = loadUserProfile;
+loadUserProfile = async function(uid) {
+    try {
+        console.log('Loading profile for:', uid);
+        const userDoc = await db.collection('users').doc(uid).get();
+        
+        if (userDoc.exists) {
+            console.log('Profile found:', userDoc.data());
+            return userDoc.data();
+        }
+        
+        // If not found, wait and try again
+        console.log('Profile not found, retrying in 2 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const userDocRetry = await db.collection('users').doc(uid).get();
+        if (userDocRetry.exists) {
+            console.log('Profile found on retry:', userDocRetry.data());
+            return userDocRetry.data();
+        }
+        
+        console.log('Profile still not found after retry');
+        return null;
+    } catch (error) {
+        console.error('Error in loadUserProfile:', error);
+        return null;
+    }
+};
+
+// Fix dashboard loading to handle missing profile data
+const originalLoadDashboard = loadDashboard;
+loadDashboard = async function() {
+    if (!currentUser) return;
+    
+    try {
+        // Always get fresh profile data
+        userProfile = await loadUserProfile(currentUser.uid);
+        
+        if (userProfile) {
+            document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName || 'Student'}!`;
+            document.getElementById('dashboardDetails').textContent = `${userProfile.department || 'Department'}, ${userProfile.year || 'Year'}`;
+            document.getElementById('dashboardBio').textContent = `"${userProfile.bio || 'No bio yet.'}"`;
+
+            // Load profile image if available
+            if (userProfile.photoURL) {
+                document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
+                document.getElementById('dashboardProfileImg').style.display = 'block';
+                document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('dashboardProfileImg').style.display = 'none';
+                document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
+            }
+        } else {
+            // Show friendly message if profile not loaded
+            document.getElementById('dashboardWelcome').textContent = 'Welcome!';
+            document.getElementById('dashboardDetails').textContent = 'Please complete your profile';
+            document.getElementById('dashboardBio').textContent = '"Your profile is being processed"';
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        document.getElementById('dashboardWelcome').textContent = 'Welcome!';
+        document.getElementById('dashboardDetails').textContent = 'Error loading profile';
+        document.getElementById('dashboardBio').textContent = '"Please try refreshing"';
+    }
+};
+
+// Add a delay after signup to ensure profile is saved
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // User just signed up - wait a bit then reload profile
+        setTimeout(async () => {
+            userProfile = await loadUserProfile(user.uid);
+            if (userProfile && typeof loadDashboard === 'function') {
+                loadDashboard();
+            }
+        }, 2000);
+    }
+});
+        
+        
+        
+        
+        
+// Simple fix for profile loading
+setTimeout(() => {
+    if (currentUser && (!userProfile || !userProfile.fullName)) {
+        console.log('Attempting to reload profile data...');
+        loadUserProfile(currentUser.uid).then(profile => {
+            if (profile) {
+                userProfile = profile;
+                if (typeof loadDashboard === 'function') loadDashboard();
+                if (typeof loadProfile === 'function') loadProfile();
+            }
+        });
+    }
+}, 3000);
+        
+        
+        
+        
+        
         
         
         
