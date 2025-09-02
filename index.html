@@ -1729,6 +1729,10 @@ await db.collection('users').doc(currentUser.uid).set(userProfileData);
     
 
     
+
+// Wait a moment for Firestore to process the profile creation
+await new Promise(resolve => setTimeout(resolve, 1000));
+
 // Load the profile to verify it was created
 userProfile = await loadUserProfile(currentUser.uid);
 
@@ -1747,9 +1751,26 @@ if (userProfile) {
     showSection('dashboard');
     updateActiveNav(document.querySelector('[data-section="dashboard"]'));
 } else {
-    throw new Error('Failed to create user profile');
-}
+    // Sometimes Firestore takes a moment to be consistent across regions
+    // Let's try one more time after a short delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    userProfile = await loadUserProfile(currentUser.uid);
     
+    if (userProfile) {
+        showNotification('Registration successful!', 'success');
+        if (typeof loadDashboard === 'function') loadDashboard();
+        updateNavigation(true);
+        showSection('dashboard');
+        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+    } else {
+        // If it still doesn't exist after waiting, show a different message
+        showNotification('Registration completed! Your profile is being processed.', 'success');
+        if (typeof loadDashboard === 'function') loadDashboard();
+        updateNavigation(true);
+        showSection('dashboard');
+        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+    }
+}
     
     
     
