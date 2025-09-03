@@ -3556,6 +3556,296 @@ showSection = function(sectionId) {
         
         
         
+        
+        
+        // ===== MESSAGE REQUEST NOTIFICATION SYSTEM =====
+let messageRequestListener = null;
+
+// Function to show message request notification
+function showMessageRequestNotification(senderId, messageText) {
+    // Get sender info
+    db.collection('users').doc(senderId).get().then(senderDoc => {
+        if (senderDoc.exists) {
+            const sender = senderDoc.data();
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'notification message-request show';
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+                        ${sender.photoURL ? 
+                            `<img src="${sender.photoURL}" alt="${sender.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                            `<div style="width: 100%; height: 100%; background: var(--accent-color); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user" style="color: var(--primary-color);"></i>
+                            </div>`
+                        }
+                    </div>
+                    <div>
+                        <strong>New message from ${sender.fullName}</strong>
+                        <p>${messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText}</p>
+                    </div>
+                    <button class="view-message-btn" style="margin-left: auto; background: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;">
+                        View
+                    </button>
+                </div>
+            `;
+            
+            // Add click to open messages
+            notification.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('view-message-btn')) {
+                    showSection('messages');
+                    updateActiveNav(document.querySelector('[data-section="messages"]'));
+                    // Find and open this conversation
+                    findAndOpenConversation(senderId);
+                }
+            });
+            
+            // Specific handler for the view button
+            const viewBtn = notification.querySelector('.view-message-btn');
+            viewBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showSection('messages');
+                updateActiveNav(document.querySelector('[data-section="messages"]'));
+                findAndOpenConversation(senderId);
+            });
+            
+            // Add to notification container
+            const container = document.getElementById('notification');
+            container.parentNode.insertBefore(notification, container.nextSibling);
+            
+            // Auto-remove after 10 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 10000);
+        }
+    });
+}
+
+// Find and open a specific conversation
+async function findAndOpenConversation(otherUserId) {
+    try {
+        // Check if conversation already exists
+        const conversationsSnapshot = await db.collection('conversations')
+            .where('participants', 'array-contains', currentUser.uid)
+            .get();
+        
+        let conversationId = null;
+        
+        conversationsSnapshot.forEach(doc => {
+            const conversation = doc.data();
+            if (conversation.participants.includes(otherUserId)) {
+                conversationId = doc.id;
+            }
+        });
+        
+        if (conversationId) {
+            // Load the conversation
+            loadConversation(conversationId, otherUserId);
+        } else {
+            // Create new conversation if it doesn't exist
+            const newConversation = {
+                participants: [currentUser.uid, otherUserId],
+                lastMessage: '',
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                // Add unread tracking
+                unreadCount: {
+                    [currentUser.uid]: 0,
+                    [otherUserId]: 0
+                }
+            };
+            
+            const conversationRef = await db.collection('conversations').add(newConversation);
+            loadConversation(conversationRef.id, otherUserId);
+        }
+    } catch (error) {
+        console.error('Error finding conversation:', error);
+        showNotification('Error opening conversation', 'error');
+    }
+}
+
+// Listen for new messages directed to current user
+function setupMessageRequestListener() {
+    if (!currentUser) return;
+    
+    // Remove existing listener if any
+    if (messageRequestListener) {
+        messageRequestListener();
+    }
+    
+    messageRequestListener = db.collection('conversations')
+        .where('participants', 'array-contains', currentUser.uid)
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'modified') {
+                    const conversation = change.doc.data();
+                    
+                    // Check if this is a new message (not from current user)
+                    if (conversation.lastMessage && 
+                        conversation.lastMessageSender !== currentUser.uid &&
+                        conversation.lastUpdated) {
+                        
+                        // Check if this conversation is not currently open
+                        const chatInput = document.getElementById('chatInput');
+                        const isActiveConversation = chatInput.dataset.conversationId === change.doc.id;
+                        
+                        // Get unread count
+                        const unreadCount = conversation.unreadCount && conversation.unreadCount[currentUser.uid] || 0;
+                        
+                        // Show notification if it's a new message and conversation is not active
+                        if (unreadCount > 0 && !isActiveConversation) {
+                            showMessageRequestNotification(conversation.lastMessageSender, conversation.lastMessage);
+                        }
+                    }
+                }
+            });
+        });
+}
+
+// Update auth state observer to handle message requests
+const originalAuthStateChanged = auth.onAuthStateChanged;
+auth.onAuthStateChanged = async (user) => {
+    await originalAuthStateChanged(user);
+    
+    if (user) {
+        // Set up message request listener when user logs in
+        setTimeout(setupMessageRequestListener, 2000);
+    } else {
+        // Remove listener when user logs out
+        if (messageRequestListener) {
+            messageRequestListener();
+            messageRequestListener = null;
+        }
+    }
+};
+
+// Update the send message function to properly set lastMessageSender
+const originalSendHandler = document.getElementById('sendMessageBtn').onclick;
+document.getElementById('sendMessageBtn').onclick = async function() {
+    const chatInput = document.getElementById('chatInput');
+    const messageInput = document.getElementById('messageInput');
+    const conversationId = chatInput.dataset.conversationId;
+    const otherUserId = chatInput.dataset.otherUserId;
+    const messageText = messageInput.value.trim();
+    
+    if (!messageText || !conversationId) return;
+    
+    try {
+        // Add message to conversation
+        const messageData = {
+            text: messageText,
+            senderId: currentUser.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        await db.collection('conversations')
+            .doc(conversationId)
+            .collection('messages')
+            .add(messageData);
+        
+        // Update conversation last message and timestamp
+        await db.collection('conversations')
+            .doc(conversationId)
+            .update({
+                lastMessage: messageText,
+                lastMessageSender: currentUser.uid,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                [`unreadCount.${otherUserId}`]: firebase.firestore.FieldValue.increment(1)
+            });
+        
+        // Clear input
+        messageInput.value = '';
+        
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showNotification('Error sending message', 'error');
+    }
+};
+
+// Add CSS for message request notifications
+if (!document.querySelector('style#message-request-styles')) {
+    const style = document.createElement('style');
+    style.id = 'message-request-styles';
+    style.textContent = `
+        .notification.message-request {
+            background: linear-gradient(to right, var(--primary-dark), var(--primary-color));
+            color: white;
+            border-left: 4px solid #ff4081;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            max-width: 400px;
+        }
+        
+        .notification.message-request:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .view-message-btn:hover {
+            background: var(--primary-dark) !important;
+        }
+        
+        @keyframes slideIn {
+            from { 
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .notification.message-request.show {
+            animation: slideIn 0.3s ease;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Initialize when user is logged in
+if (currentUser) {
+    setupMessageRequestListener();
+}
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
     </script>
 </body>
 </html>
