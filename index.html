@@ -3057,6 +3057,499 @@ setTimeout(() => {
         
         
         
+
+
+        
+        
+        
+        
+        
+    // ===== VOICE MESSAGE FEATURE =====
+    
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let audioPlayer = null;
+    
+    // Initialize voice message feature
+    function initVoiceMessage() {
+        // Add voice message button to chat interface
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput && !chatInput.querySelector('.voice-message-btn')) {
+            const voiceButton = document.createElement('button');
+            voiceButton.className = 'voice-message-btn';
+            voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceButton.style.background = 'var(--primary-color)';
+            voiceButton.style.color = 'white';
+            voiceButton.style.border = 'none';
+            voiceButton.style.borderRadius = 'var(--border-radius)';
+            voiceButton.style.padding = '0.75rem';
+            voiceButton.style.cursor = 'pointer';
+            voiceButton.style.marginRight = '10px';
+            voiceButton.title = 'Record Voice Message';
+            
+            voiceButton.addEventListener('click', toggleRecording);
+            
+            // Insert before the send button
+            chatInput.insertBefore(voiceButton, chatInput.querySelector('button'));
+            
+            // Create audio player element
+            audioPlayer = document.createElement('audio');
+            audioPlayer.controls = true;
+            audioPlayer.style.width = '100%';
+            audioPlayer.style.marginTop = '10px';
+            audioPlayer.style.display = 'none';
+            chatInput.parentNode.insertBefore(audioPlayer, chatInput.nextSibling);
+            
+            // Create recording indicator
+            const recordingIndicator = document.createElement('div');
+            recordingIndicator.className = 'recording-indicator';
+            recordingIndicator.innerHTML = '<i class="fas fa-circle" style="color: var(--error-color); animation: pulse 1s infinite;"></i> Recording...';
+            recordingIndicator.style.display = 'none';
+            recordingIndicator.style.alignItems = 'center';
+            recordingIndicator.style.gap = '10px';
+            recordingIndicator.style.padding = '10px';
+            recordingIndicator.style.background = 'rgba(244, 67, 54, 0.1)';
+            recordingIndicator.style.borderRadius = 'var(--border-radius)';
+            recordingIndicator.style.marginTop = '10px';
+            chatInput.parentNode.insertBefore(recordingIndicator, chatInput.nextSibling);
+        }
+    }
+    
+    // Toggle recording
+    async function toggleRecording() {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+    
+    // Start recording
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioChunks = [];
+            
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                // Show audio player
+                audioPlayer.src = audioUrl;
+                audioPlayer.style.display = 'block';
+                
+                // Create send button for voice message
+                const sendVoiceButton = document.createElement('button');
+                sendVoiceButton.className = 'btn';
+                sendVoiceButton.innerHTML = '<i class="fas fa-paper-plane"></i> Send Voice Message';
+                sendVoiceButton.style.marginTop = '10px';
+                sendVoiceButton.style.width = '100%';
+                sendVoiceButton.onclick = () => sendVoiceMessage(audioBlob);
+                
+                audioPlayer.parentNode.insertBefore(sendVoiceButton, audioPlayer.nextSibling);
+                
+                // Stop all tracks
+                stream.getTracks().forEach(track => track.stop());
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            
+            // Update UI
+            const voiceButton = document.querySelector('.voice-message-btn');
+            voiceButton.innerHTML = '<i class="fas fa-stop"></i>';
+            voiceButton.style.background = 'var(--error-color)';
+            
+            // Show recording indicator
+            document.querySelector('.recording-indicator').style.display = 'flex';
+            
+        } catch (error) {
+            console.error('Error starting recording:', error);
+            showNotification('Microphone access denied', 'error');
+        }
+    }
+    
+    // Stop recording
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            mediaRecorder.stop();
+            isRecording = false;
+            
+            // Update UI
+            const voiceButton = document.querySelector('.voice-message-btn');
+            voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            voiceButton.style.background = 'var(--primary-color)';
+            
+            // Hide recording indicator
+            document.querySelector('.recording-indicator').style.display = 'none';
+        }
+    }
+    
+    // Send voice message
+    async function sendVoiceMessage(audioBlob) {
+        const chatInput = document.getElementById('chatInput');
+        const conversationId = chatInput.dataset.conversationId;
+        const otherUserId = chatInput.dataset.otherUserId;
+        
+        if (!conversationId) {
+            showNotification('Please select a conversation first', 'error');
+            return;
+        }
+        
+        try {
+            // Show loading
+            toggleButtonLoading('sendVoice', true);
+            
+            // Upload audio to Firebase Storage
+            const storageRef = storage.ref();
+            const audioRef = storageRef.child(`voice_messages/${conversationId}/${Date.now()}.webm`);
+            
+            // Upload the file
+            const snapshot = await audioRef.put(audioBlob);
+            const audioUrl = await snapshot.ref.getDownloadURL();
+            
+            // Get audio duration (approximate)
+            const audio = new Audio();
+            audio.src = URL.createObjectURL(audioBlob);
+            
+            audio.onloadedmetadata = async () => {
+                const duration = Math.round(audio.duration);
+                
+                // Add message to conversation
+                const messageData = {
+                    type: 'voice',
+                    audioUrl: audioUrl,
+                    duration: duration,
+                    senderId: currentUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .collection('messages')
+                    .add(messageData);
+                
+                // Update conversation last message and timestamp
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .update({
+                        lastMessage: '🎤 Voice message',
+                        lastMessageSender: currentUser.uid,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                // Increment unread count for the recipient
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .update({
+                        [`unreadCount.${otherUserId}`]: firebase.firestore.FieldValue.increment(1)
+                    });
+                
+                // Clear audio player
+                audioPlayer.style.display = 'none';
+                audioPlayer.src = '';
+                
+                // Remove send button
+                const sendButton = document.querySelector('button[onclick="sendVoiceMessage(audioBlob)"]');
+                if (sendButton) sendButton.remove();
+                
+                showNotification('Voice message sent!', 'success');
+                toggleButtonLoading('sendVoice', false);
+            };
+            
+        } catch (error) {
+            console.error('Error sending voice message:', error);
+            showNotification('Error sending voice message', 'error');
+            toggleButtonLoading('sendVoice', false);
+        }
+    }
+    
+    // Render voice messages in chat
+    function renderVoiceMessage(message, messageElement) {
+        messageElement.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                <i class="fas fa-microphone" style="color: var(--primary-color);"></i>
+                <span>Voice message</span>
+                <span style="font-size: 0.8rem; color: #666;">${message.duration}s</span>
+            </div>
+            <audio controls style="width: 100%; max-width: 300px;">
+                <source src="${message.audioUrl}" type="audio/webm">
+                Your browser does not support audio playback.
+            </audio>
+            <div class="message-time">${new Date(message.timestamp?.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        `;
+    }
+    
+    // Modify chat message rendering to handle voice messages
+    function patchChatRendering() {
+        const originalChatListener = unsubscribeChat;
+        
+        unsubscribeChat = db.collection('conversations')
+            .doc(chatInput.dataset.conversationId)
+            .collection('messages')
+            .orderBy('timestamp', 'asc')
+            .onSnapshot((snapshot) => {
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
+                } else {
+                    snapshot.forEach(doc => {
+                        const message = doc.data();
+                        const messageElement = document.createElement('div');
+                        messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+                        
+                        if (message.type === 'voice') {
+                            renderVoiceMessage(message, messageElement);
+                        } else {
+                            // Regular text message
+                            const timeString = message.timestamp ? message.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+                            messageElement.innerHTML = `
+                                <p>${message.text}</p>
+                                <div class="message-time">${timeString}</div>
+                            `;
+                        }
+                        
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                
+                // Show chat input
+                chatInput.style.display = 'flex';
+            });
+    }
+    
+    // Initialize when messages section is loaded
+    const originalLoadConversation = loadConversation;
+    loadConversation = async function(conversationId, otherUserId) {
+        await originalLoadConversation(conversationId, otherUserId);
+        
+        // Wait a bit for the chat interface to render
+        setTimeout(() => {
+            initVoiceMessage();
+            patchChatRendering();
+        }, 100);
+    };
+    
+    // CSS for voice message feature
+    if (!document.querySelector('style#voice-message-styles')) {
+        const style = document.createElement('style');
+        style.id = 'voice-message-styles';
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 1; }
+                50% { opacity: 0.5; }
+                100% { opacity: 1; }
+            }
+            
+            .voice-message-btn {
+                transition: all 0.3s ease;
+            }
+            
+            .voice-message-btn:hover {
+                transform: scale(1.1);
+            }
+            
+            .voice-message-btn.recording {
+                background-color: var(--error-color) !important;
+                animation: pulse 1s infinite;
+            }
+            
+            .voice-message-container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            
+            .voice-visualizer {
+                display: flex;
+                align-items: end;
+                gap: 2px;
+                height: 30px;
+            }
+            
+            .voice-bar {
+                width: 3px;
+                background-color: var(--primary-color);
+                border-radius: 2px;
+                transition: height 0.1s ease;
+            }
+            
+            /* Responsive design for voice messages */
+            @media (max-width: 768px) {
+                .voice-message-btn {
+                    padding: 0.5rem !important;
+                    margin-right: 5px !important;
+                }
+                
+                audio {
+                    max-width: 250px !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Add visualizer animation for recording
+    function addVisualizer() {
+        const visualizer = document.createElement('div');
+        visualizer.className = 'voice-visualizer';
+        visualizer.style.display = 'none';
+        
+        // Create 20 bars for visualizer
+        for (let i = 0; i < 20; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'voice-bar';
+            bar.style.height = Math.random() * 20 + 5 + 'px';
+            visualizer.appendChild(bar);
+        }
+        
+        document.querySelector('.recording-indicator').appendChild(visualizer);
+        
+        // Animate bars
+        if (window.visualizerInterval) clearInterval(window.visualizerInterval);
+        window.visualizerInterval = setInterval(() => {
+            if (isRecording) {
+                visualizer.querySelectorAll('.voice-bar').forEach(bar => {
+                    bar.style.height = Math.random() * 20 + 5 + 'px';
+                });
+            }
+        }, 100);
+    }
+
+    // Initialize when page loads
+    setTimeout(() => {
+        if (document.getElementById('messages').classList.contains('active')) {
+            initVoiceMessage();
+        }
+    }, 1000);
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+// ===== FIXED MENU FUNCTIONALITY =====
+function setupMenu() {
+    // Navigation functionality
+    const navLinks = document.querySelectorAll('.nav-link');
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    
+    // Remove any existing listeners first
+    const newNavLinks = [];
+    navLinks.forEach(link => {
+        const newLink = link.cloneNode(true);
+        link.parentNode.replaceChild(newLink, link);
+        newNavLinks.push(newLink);
+    });
+    
+    const newMenuToggle = menuToggle.cloneNode(true);
+    menuToggle.parentNode.replaceChild(newMenuToggle, menuToggle);
+    
+    // Handle navigation clicks
+    newNavLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const sectionId = this.getAttribute('data-section');
+            showSection(sectionId);
+            updateActiveNav(this);
+            
+            // Close mobile menu after selection
+            if (window.innerWidth <= 768) {
+                navMenu.classList.remove('show');
+            }
+        });
+    });
+    
+    // Mobile menu toggle
+    newMenuToggle.addEventListener('click', function() {
+        navMenu.classList.toggle('show');
+    });
+    
+    // Close menu when clicking outside on mobile
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768 &&
+            navMenu.classList.contains('show') &&
+            !e.target.closest('#navMenu') &&
+            !e.target.closest('#menuToggle')) {
+            navMenu.classList.remove('show');
+        }
+    });
+}
+
+// Update active navigation link
+function updateActiveNav(activeLink) {
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+    });
+    activeLink.classList.add('active');
+}
+
+// Initialize menu when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    setupMenu();
+});
+
+// Re-setup menu when navigating to a new section
+const originalShowSection = showSection;
+showSection = function(sectionId) {
+    originalShowSection(sectionId);
+    setTimeout(setupMenu, 100);
+};
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
