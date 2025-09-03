@@ -3822,7 +3822,220 @@ if (currentUser) {
         
         
         
+        // ===== FIXED LOGOUT FUNCTIONALITY =====
+function setupLogout() {
+    // Find the logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (!logoutBtn) return;
+    
+    // Clone the button to remove any existing event listeners
+    const newLogoutBtn = logoutBtn.cloneNode(true);
+    logoutBtn.parentNode.replaceChild(newLogoutBtn, logoutBtn);
+    
+    // Add fresh event listener
+    newLogoutBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event bubbling
         
+        console.log('Logout button clicked');
+        
+        try {
+            // Clean up any listeners
+            if (unsubscribeChat) {
+                unsubscribeChat();
+                unsubscribeChat = null;
+            }
+            
+            if (typingListener) {
+                typingListener();
+                typingListener = null;
+            }
+            
+            if (readReceiptListener) {
+                readReceiptListener();
+                readReceiptListener = null;
+            }
+            
+            if (messageRequestListener) {
+                messageRequestListener();
+                messageRequestListener = null;
+            }
+            
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+                typingTimeout = null;
+            }
+            
+            // Update user offline status
+            if (currentUser) {
+                try {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        isOnline: false,
+                        lastSeen: new Date()
+                    });
+                } catch (error) {
+                    console.error('Error updating offline status:', error);
+                }
+            }
+            
+            // Sign out from Firebase Auth
+            await auth.signOut();
+            
+            // Reset user variables
+            currentUser = null;
+            userProfile = null;
+            
+            // Show unauthenticated navigation
+            updateNavigation(false);
+            
+            // Show home section
+            showSection('home');
+            updateActiveNav(document.querySelector('[data-section="home"]'));
+            
+            showNotification('Logged out successfully', 'success');
+            
+        } catch (error) {
+            console.error('Logout error:', error);
+            showNotification('Error logging out: ' + error.message, 'error');
+        }
+    });
+}
+
+// Update navigation function to handle logout button visibility
+function updateNavigation(isAuthenticated) {
+    if (isAuthenticated) {
+        document.getElementById('loginNav').style.display = 'none';
+        document.getElementById('signupNav').style.display = 'none';
+        document.getElementById('dashboardNav').style.display = 'list-item';
+        document.getElementById('browseNav').style.display = 'list-item';
+        document.getElementById('messagesNav').style.display = 'list-item';
+        document.getElementById('profileNav').style.display = 'list-item';
+        
+        // Setup logout button
+        setTimeout(setupLogout, 100);
+    } else {
+        document.getElementById('loginNav').style.display = 'list-item';
+        document.getElementById('signupNav').style.display = 'list-item';
+        document.getElementById('dashboardNav').style.display = 'none';
+        document.getElementById('browseNav').style.display = 'none';
+        document.getElementById('messagesNav').style.display = 'none';
+        document.getElementById('profileNav').style.display = 'none';
+    }
+}
+
+// Enhanced auth state change handler
+function setupAuthStateHandler() {
+    // Remove any existing auth state listener
+    if (window.authStateChangedHandler) {
+        window.authStateChangedHandler();
+    }
+    
+    // Set up new auth state listener
+    window.authStateChangedHandler = auth.onAuthStateChanged(async (user) => {
+        console.log('Auth state changed:', user ? 'User logged in' : 'User logged out');
+        
+        if (user) {
+            // User is signed in
+            currentUser = user;
+            
+            try {
+                // Get user profile
+                userProfile = await loadUserProfile(user.uid);
+                
+                if (userProfile) {
+                    // Update user online status
+                    await db.collection('users').doc(user.uid).update({
+                        isOnline: true,
+                        lastSeen: new Date()
+                    });
+                    
+                    updateNavigation(true);
+                    
+                    // If on auth pages, redirect to dashboard
+                    if (document.getElementById('login').classList.contains('active') ||
+                        document.getElementById('signup').classList.contains('active')) {
+                        showSection('dashboard');
+                        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+                    }
+                } else {
+                    // User document doesn't exist, sign out
+                    await auth.signOut();
+                    currentUser = null;
+                    showNotification('User profile not found. Please sign up.', 'error');
+                }
+            } catch (error) {
+                console.error('Error in auth state change:', error);
+                try {
+                    await auth.signOut();
+                } catch (signOutError) {
+                    console.error('Error during sign out:', signOutError);
+                }
+                currentUser = null;
+            }
+        } else {
+            // User is signed out
+            if (currentUser) {
+                // Update user offline status
+                try {
+                    await db.collection('users').doc(currentUser.uid).update({
+                        isOnline: false,
+                        lastSeen: new Date()
+                    });
+                } catch (error) {
+                    console.error('Error updating offline status:', error);
+                }
+            }
+            
+            currentUser = null;
+            userProfile = null;
+            updateNavigation(false);
+            
+            // If on protected page, redirect to home
+            if (document.getElementById('dashboard').classList.contains('active') || 
+                document.getElementById('browse').classList.contains('active') ||
+                document.getElementById('messages').classList.contains('active') ||
+                document.getElementById('profile').classList.contains('active')) {
+                showSection('home');
+                updateActiveNav(document.querySelector('[data-section="home"]'));
+            }
+        }
+    });
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    setupAuthStateHandler();
+    setupLogout();
+    
+    // Also setup logout when navigating to dashboard
+    const originalShowSection = showSection;
+    showSection = function(sectionId) {
+        originalShowSection(sectionId);
+        
+        if (sectionId === 'dashboard') {
+            setTimeout(setupLogout, 100);
+        }
+    };
+});
+
+// Clean up function for when page is unloaded
+window.addEventListener('beforeunload', async function() {
+    if (currentUser) {
+        try {
+            await db.collection('users').doc(currentUser.uid).update({
+                isOnline: false,
+                lastSeen: new Date()
+            });
+        } catch (error) {
+            console.error('Error updating offline status on page unload:', error);
+        }
+    }
+});
+
+// Re-setup logout when user logs in
+if (currentUser) {
+    setTimeout(setupLogout, 1000);
+}
         
         
         
