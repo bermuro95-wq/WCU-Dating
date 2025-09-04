@@ -2724,6 +2724,7 @@ async function viewUserProfile(userId) {
         
         
         
+        
 
 // ==================== MESSAGE REQUESTS SYSTEM ====================
 
@@ -2751,7 +2752,7 @@ function addMessageRequestsToNav() {
             e.preventDefault();
             showSection('message-requests');
             updateActiveNav('message-requests');
-            markRequestsAsRead(); // Mark as read when clicked
+            markRequestsAsRead();
         });
     }
 }
@@ -2767,7 +2768,11 @@ function createMessageRequestsSection() {
             <div class="form-container">
                 <h2 class="form-title">Message Requests</h2>
                 <div id="requestsContainer">
-                    <div class="spinner"></div>
+                    <div class="empty-state">
+                        <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                        <h3>No message requests yet</h3>
+                        <p>When someone sends you a message, it will appear here</p>
+                    </div>
                 </div>
             </div>
         `;
@@ -2775,137 +2780,98 @@ function createMessageRequestsSection() {
     }
 }
 
-// Enhanced notification function for both mobile and desktop
-function showNotification(message, type) {
-    const notification = document.getElementById('notification');
-    if (!notification) {
-        console.error('Notification element not found!');
-        return;
-    }
-    
-    // Clear any existing notifications
-    notification.classList.remove('show', 'success', 'error', 'info', 'warning');
-    
-    // Set notification content and style
-    notification.textContent = message;
-    notification.className = `notification ${type} show`;
-    
-    // Auto-hide after 4 seconds
-    setTimeout(() => {
-        if (notification.classList.contains('show')) {
-            notification.classList.remove('show');
-        }
-    }, 4000);
-    
-    // Add vibration for mobile devices
-    if (window.innerWidth <= 768 && 'vibrate' in navigator) {
-        try {
-            navigator.vibrate(200);
-        } catch (e) {
-            console.log('Vibration not supported');
-        }
-    }
-}
-
-// Load message requests with REAL data
+// Load message requests - SIMPLIFIED AND FIXED
 async function loadMessageRequests() {
     if (!currentUser) return;
     
     try {
+        // Clean up previous listener
         if (unsubscribeRequests) {
             unsubscribeRequests();
         }
         
-        unsubscribeRequests = db.collection('messageRequests')
+        const requestsContainer = document.getElementById('requestsContainer');
+        const navBadge = document.getElementById('navRequestsBadge');
+        
+        if (!requestsContainer) {
+            console.error("Requests container not found!");
+            return;
+        }
+        
+        // Show loading state
+        requestsContainer.innerHTML = '<div class="spinner"></div>';
+        
+        // Get message requests
+        const snapshot = await db.collection('messageRequests')
             .where('receiverId', '==', currentUser.uid)
             .where('status', '==', 'pending')
             .orderBy('timestamp', 'desc')
-            .onSnapshot(async (snapshot) => {
-                messageRequests = [];
-                const requestsContainer = document.getElementById('requestsContainer');
-                const navBadge = document.getElementById('navRequestsBadge');
+            .get();
+        
+        messageRequests = [];
+        let unreadCount = 0;
+        
+        if (snapshot.empty) {
+            requestsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                    <h3>No message requests</h3>
+                    <p>You don't have any pending message requests</p>
+                </div>
+            `;
+            if (navBadge) {
+                navBadge.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Process each request
+        requestsContainer.innerHTML = '';
+        
+        for (const doc of snapshot.docs) {
+            const request = { 
+                id: doc.id, 
+                ...doc.data(),
+                timestamp: doc.data().timestamp?.toDate() || new Date()
+            };
+            messageRequests.push(request);
+            
+            if (!request.read) {
+                unreadCount++;
+            }
+            
+            try {
+                // Get sender information
+                const senderDoc = await db.collection('users').doc(request.senderId).get();
                 
-                if (!requestsContainer) return;
-                
-                if (snapshot.empty) {
-                    requestsContainer.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                            <h3>No message requests</h3>
-                            <p>You don't have any pending message requests</p>
-                        </div>
-                    `;
-                    if (navBadge) {
-                        navBadge.style.display = 'none';
-                    }
-                    return;
-                }
-                
-                requestsContainer.innerHTML = '';
-                let unreadCount = 0;
-                const loadingPromises = [];
-                
-                snapshot.forEach(doc => {
-                    const request = { 
-                        id: doc.id, 
-                        ...doc.data(),
-                        timestamp: doc.data().timestamp ? doc.data().timestamp.toDate() : new Date()
-                    };
-                    messageRequests.push(request);
-                    
-                    if (!request.read) {
-                        unreadCount++;
-                    }
-                    
-                    // Load sender info for each request
-                    const promise = db.collection('users').doc(request.senderId).get()
-                        .then(senderDoc => {
-                            if (senderDoc.exists) {
-                                return { request, sender: senderDoc.data() };
-                            }
-                            return null;
-                        });
-                    
-                    loadingPromises.push(promise);
-                });
-                
-                // Wait for all user data to load
-                const results = await Promise.all(loadingPromises);
-                
-                results.forEach(result => {
-                    if (!result) return;
-                    
-                    const { request, sender } = result;
+                if (senderDoc.exists) {
+                    const sender = senderDoc.data();
                     const requestElement = document.createElement('div');
                     requestElement.className = 'request-item';
-                    requestElement.style.padding = '1.5rem';
-                    requestElement.style.borderBottom = '1px solid #eee';
-                    requestElement.style.marginBottom = '1rem';
-                    
                     requestElement.innerHTML = `
-                        <div style="display: flex; align-items: flex-start; gap: 1rem;">
-                            <div class="conversation-img" style="width: 60px; height: 60px;">
+                        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: var(--accent-color); display: flex; align-items: center; justify-content: center;">
                                 ${sender.photoURL ? 
-                                    `<img src="${sender.photoURL}" alt="${sender.fullName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
+                                    `<img src="${sender.photoURL}" alt="${sender.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
                                     `<i class="fas fa-user" style="font-size: 2rem; color: var(--primary-color);"></i>`
                                 }
                             </div>
                             <div style="flex: 1;">
                                 <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">${sender.fullName}</h3>
-                                <p style="color: #666; margin-bottom: 0.5rem;">
-                                    <strong>Message:</strong> "${request.message}"
+                                <p style="color: #666; margin-bottom: 0.5rem; background: #f9f9f9; padding: 0.75rem; border-radius: 8px; border-left: 4px solid var(--primary-light);">
+                                    "${request.message}"
                                 </p>
-                                <p style="font-size: 0.8rem; color: #999;">
+                                <p style="font-size: 0.8rem; color: #999; margin-bottom: 1rem;">
                                     ${request.timestamp.toLocaleDateString()} at ${request.timestamp.toLocaleTimeString()}
                                 </p>
-                                <div class="request-actions" style="margin-top: 1rem;">
-                                    <button class="btn request-accept" onclick="acceptMessageRequest('${request.id}', '${request.senderId}')" style="padding: 0.5rem 1.5rem;">
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button class="btn" onclick="acceptMessageRequest('${request.id}', '${request.senderId}')" style="background: var(--success-color);">
                                         <i class="fas fa-check"></i> Accept & Chat
                                     </button>
-                                    <button class="btn btn-outline" onclick="viewUserProfile('${request.senderId}')" style="padding: 0.5rem 1.5rem; margin-left: 0.5rem;">
+                                    <button class="btn btn-outline" onclick="viewUserProfile('${request.senderId}')">
                                         <i class="fas fa-user"></i> View Profile
                                     </button>
-                                    <button class="btn request-decline" onclick="declineMessageRequest('${request.id}')" style="padding: 0.5rem 1.5rem; margin-left: 0.5rem;">
+                                    <button class="btn" onclick="declineMessageRequest('${request.id}')" style="background: var(--error-color); color: white;">
                                         <i class="fas fa-times"></i> Decline
                                     </button>
                                 </div>
@@ -2918,31 +2884,54 @@ async function loadMessageRequests() {
                     `;
                     
                     requestsContainer.appendChild(requestElement);
-                });
+                }
+            } catch (error) {
+                console.error('Error loading sender info:', error);
+            }
+        }
+        
+        // Update navigation badge
+        if (navBadge) {
+            if (unreadCount > 0) {
+                navBadge.textContent = unreadCount;
+                navBadge.style.display = 'inline-flex';
+                document.getElementById('messageRequestsNav').style.display = 'list-item';
                 
-                // Update navigation badge and show notification
-                if (navBadge) {
-                    if (unreadCount > 0) {
-                        navBadge.textContent = unreadCount;
-                        navBadge.style.display = 'inline-flex';
-                        document.getElementById('messageRequestsNav').style.display = 'list-item';
-                        
-                        // Show notification for BOTH mobile and desktop
-                        showNotification(`You have ${unreadCount} new message request${unreadCount > 1 ? 's' : ''}`, 'info');
-                    } else {
-                        navBadge.style.display = 'none';
-                    }
+                // Show notification
+                showNotification(`You have ${unreadCount} new message request${unreadCount > 1 ? 's' : ''}`, 'info');
+            } else {
+                navBadge.style.display = 'none';
+            }
+        }
+        
+        // Set up real-time listener for new requests
+        unsubscribeRequests = db.collection('messageRequests')
+            .where('receiverId', '==', currentUser.uid)
+            .where('status', '==', 'pending')
+            .orderBy('timestamp', 'desc')
+            .onSnapshot((snapshot) => {
+                // Just update badge count for real-time, don't reload everything
+                const newCount = snapshot.size;
+                if (navBadge && newCount > 0) {
+                    navBadge.textContent = newCount;
+                    navBadge.style.display = 'inline-flex';
+                } else if (navBadge) {
+                    navBadge.style.display = 'none';
                 }
             });
+            
     } catch (error) {
         console.error('Error loading message requests:', error);
         const requestsContainer = document.getElementById('requestsContainer');
         if (requestsContainer) {
             requestsContainer.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--error-color); margin-bottom: 1rem;"></i>
-                    <h3>Error loading requests</h3>
-                    <p>Please try refreshing the page</p>
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning-color); margin-bottom: 1rem;"></i>
+                    <h3>Unable to load requests</h3>
+                    <p>Please check your connection and try again</p>
+                    <button class="btn" onclick="loadMessageRequests()" style="margin-top: 1rem;">
+                        <i class="fas fa-refresh"></i> Try Again
+                    </button>
                 </div>
             `;
         }
@@ -2954,24 +2943,26 @@ async function markRequestsAsRead() {
     if (!currentUser) return;
     
     try {
-        const batch = db.batch();
         const requestsRef = db.collection('messageRequests')
             .where('receiverId', '==', currentUser.uid)
             .where('status', '==', 'pending')
             .where('read', '==', false);
         
         const snapshot = await requestsRef.get();
+        
+        const updatePromises = [];
         snapshot.forEach(doc => {
-            batch.update(doc.ref, { read: true });
+            updatePromises.push(doc.ref.update({ read: true }));
         });
         
-        await batch.commit();
+        await Promise.all(updatePromises);
         
-        // Update badge after marking as read
+        // Update badge
         const navBadge = document.getElementById('navRequestsBadge');
         if (navBadge) {
             navBadge.style.display = 'none';
         }
+        
     } catch (error) {
         console.error('Error marking requests as read:', error);
     }
@@ -2980,12 +2971,19 @@ async function markRequestsAsRead() {
 // Accept message request
 async function acceptMessageRequest(requestId, senderId) {
     try {
+        // Update request status
         await db.collection('messageRequests').doc(requestId).update({
             status: 'accepted',
             respondedAt: new Date()
         });
         
         showNotification('Message request accepted! Starting conversation...', 'success');
+        
+        // Remove the request from UI
+        const requestElement = document.querySelector(`[onclick="acceptMessageRequest('${requestId}', '${senderId}')"]`)?.closest('.request-item');
+        if (requestElement) {
+            requestElement.remove();
+        }
         
         // Create conversation
         await startConversation(senderId);
@@ -2995,9 +2993,10 @@ async function acceptMessageRequest(requestId, senderId) {
             showSection('messages');
             updateActiveNav('messages');
         }, 1000);
+        
     } catch (error) {
         console.error('Error accepting message request:', error);
-        showNotification('Error accepting request', 'error');
+        showNotification('Error accepting request. Please try again.', 'error');
     }
 }
 
@@ -3010,10 +3009,27 @@ async function declineMessageRequest(requestId) {
         });
         
         showNotification('Message request declined', 'success');
-        setTimeout(() => loadMessageRequests(), 500);
+        
+        // Remove the request from UI immediately
+        const requestElement = document.querySelector(`[onclick="declineMessageRequest('${requestId}')"]`)?.closest('.request-item');
+        if (requestElement) {
+            requestElement.remove();
+        }
+        
+        // If no requests left, show empty state
+        if (document.getElementById('requestsContainer').children.length === 0) {
+            document.getElementById('requestsContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+                    <h3>No message requests</h3>
+                    <p>You don't have any pending message requests</p>
+                </div>
+            `;
+        }
+        
     } catch (error) {
         console.error('Error declining message request:', error);
-        showNotification('Error declining request', 'error');
+        showNotification('Error declining request. Please try again.', 'error');
     }
 }
 
@@ -3023,123 +3039,83 @@ function initializeMessageRequestsUI() {
     createMessageRequestsSection();
 }
 
-// Update navigation to show requests
+// Update navigation
 const originalUpdateNavigation = updateNavigation;
 updateNavigation = function(isAuthenticated) {
     originalUpdateNavigation(isAuthenticated);
     
     if (isAuthenticated && currentUser) {
-        setTimeout(() => {
-            if (document.getElementById('messageRequestsNav')) {
-                document.getElementById('messageRequestsNav').style.display = 'list-item';
-            }
-            loadMessageRequests();
-        }, 1000);
+        if (document.getElementById('messageRequestsNav')) {
+            document.getElementById('messageRequestsNav').style.display = 'list-item';
+        }
+        loadMessageRequests();
     }
 };
 
 // Initialize when user logs in
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged((user) => {
     if (user) {
         setTimeout(() => {
             initializeMessageRequestsUI();
             loadMessageRequests();
-        }, 2000);
+        }, 1500);
     }
 });
 
-// Add CSS for message requests and notifications
+// Add CSS
 const style = document.createElement('style');
 style.textContent = `
     .request-item {
         background: white;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 1.5rem;
         margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
     }
-    .request-item:hover {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        transform: translateY(-2px);
+    
+    @media (max-width: 768px) {
+        .request-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .request-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .request-actions button {
+            width: 100%;
+            margin: 0;
+        }
     }
-    .request-accept {
-        background: var(--success-color) !important;
-        border: none;
-    }
-    .request-decline {
-        background: var(--error-color) !important;
-        border: none;
-    }
+    
     #navRequestsBadge {
-        animation: pulse 1.5s infinite;
+        animation: pulse 2s infinite;
     }
+    
     @keyframes pulse {
         0% { transform: scale(1); }
         50% { transform: scale(1.1); }
         100% { transform: scale(1); }
-    }
-    
-    /* Mobile-friendly notifications */
-    @media (max-width: 768px) {
-        .notification {
-            top: 10px !important;
-            right: 10px !important;
-            left: 10px !important;
-            max-width: calc(100% - 20px) !important;
-            font-size: 14px;
-            padding: 12px 15px;
-        }
-        .request-actions {
-            flex-direction: column;
-            gap: 0.5rem !important;
-        }
-        .request-actions button {
-            margin-left: 0 !important;
-            width: 100%;
-        }
-    }
-    
-    /* Ensure notifications are visible on all devices */
-    .notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        color: white;
-        z-index: 10000;
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: opacity 0.3s, transform 0.3s;
-        max-width: 350px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        font-weight: 500;
-    }
-    .notification.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    .notification.success {
-        background-color: var(--success-color);
-    }
-    .notification.error {
-        background-color: var(--error-color);
-    }
-    .notification.info {
-        background-color: var(--primary-color);
-    }
-    .notification.warning {
-        background-color: var(--warning-color);
     }
 `;
 document.head.appendChild(style);
 
 console.log("Message Requests system loaded successfully!");
         
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
-        
-        
+
         
         
         
