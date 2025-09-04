@@ -1531,21 +1531,28 @@
             });
         }
 
-        // Load user profile from Firestore
-        async function loadUserProfile(uid) {
-            try {
-                const userDoc = await db.collection('users').doc(uid).get();
-                if (userDoc.exists) {
-                    return userDoc.data();
-                }
-                return null;
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                showNotification('Error loading profile data', 'error');
-                return null;
-            }
+        
+        
+// Load user profile from Firestore
+async function loadUserProfile(uid) {
+    try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+            console.log("Profile found for user:", uid);
+            return userDoc.data();
         }
-
+        console.log("No profile found for user:", uid);
+        return null;
+    } catch (error) {
+        console.error('Error loading user profile:', error);
+        // Don't show notification here to avoid spam during retries
+        return null;
+    }
+}
+        
+        
+        
+        
         // Show notification
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
