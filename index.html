@@ -2729,70 +2729,56 @@ async function viewUserProfile(userId) {
         
         
         
-        
-        
-        
-        // ==================== MESSAGE REQUESTS SYSTEM ====================
+// ==================== MESSAGE REQUESTS SYSTEM ====================
 
 // Message Requests Variables
 let messageRequests = [];
 let unsubscribeRequests = null;
 
-// Initialize Message Requests UI
-function initializeMessageRequestsUI() {
-    // Add requests container to messages section
-    const conversationsList = document.querySelector('.conversations-list');
-    if (conversationsList && !document.getElementById('requestsContainer')) {
-        conversationsList.insertAdjacentHTML('afterend', `
-            <div class="requests-container" id="requestsContainer" style="display: none;">
+// Add message requests to navigation
+function addMessageRequestsToNav() {
+    const navMenu = document.getElementById('navMenu');
+    const messagesNav = document.getElementById('messagesNav');
+    
+    if (messagesNav && !document.getElementById('messageRequestsNav')) {
+        const messageRequestsNav = document.createElement('li');
+        messageRequestsNav.innerHTML = `
+            <a href="#message-requests" class="nav-link" data-section="message-requests" id="messageRequestsNav" style="display:none;">
+                Message Requests <span id="navRequestsBadge" style="display: none; background: var(--success-color); color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; margin-left: 5px;"></span>
+            </a>
+        `;
+        navMenu.insertBefore(messageRequestsNav, messagesNav.nextSibling);
+        
+        // Add click handler
+        document.getElementById('messageRequestsNav').addEventListener('click', function(e) {
+            e.preventDefault();
+            showSection('message-requests');
+            updateActiveNav('message-requests');
+        });
+    }
+}
+
+// Create Message Requests section
+function createMessageRequestsSection() {
+    if (!document.getElementById('message-requests')) {
+        const messagesSection = document.getElementById('messages');
+        const messageRequestsSection = document.createElement('section');
+        messageRequestsSection.id = 'message-requests';
+        messageRequestsSection.className = 'section';
+        messageRequestsSection.innerHTML = `
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">Message Requests</h2>
+            <div class="requests-container" id="requestsContainer">
                 <div class="spinner"></div>
             </div>
-        `);
-    }
-
-    // Add toggle buttons if they don't exist
-    const messagesTitle = document.querySelector('#messages h2');
-    if (messagesTitle && !document.getElementById('showConversationsBtn')) {
-        messagesTitle.insertAdjacentHTML('afterend', `
-            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                <button class="btn" id="showConversationsBtn" style="flex: 1;">Conversations</button>
-                <button class="btn btn-outline" id="showRequestsBtn" style="flex: 1;">
-                    Message Requests
-                    <span id="requestsBadge" style="display: none; margin-left: 8px; background: var(--success-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px;"></span>
-                </button>
-            </div>
-        `);
-
-        // Add event listeners
-        document.getElementById('showConversationsBtn').addEventListener('click', showConversationsView);
-        document.getElementById('showRequestsBtn').addEventListener('click', showRequestsView);
+        `;
+        messagesSection.parentNode.insertBefore(messageRequestsSection, messagesSection.nextSibling);
     }
 }
 
-// Toggle between conversations and requests views
-function showConversationsView() {
-    if (!document.getElementById('conversationsList')) return;
-    
-    document.getElementById('conversationsList').style.display = 'block';
-    document.getElementById('requestsContainer').style.display = 'none';
-    document.getElementById('showConversationsBtn').classList.remove('btn-outline');
-    document.getElementById('showConversationsBtn').classList.add('btn');
-    document.getElementById('showRequestsBtn').classList.remove('btn');
-    document.getElementById('showRequestsBtn').classList.add('btn-outline');
-}
-
-function showRequestsView() {
-    if (!document.getElementById('requestsContainer')) return;
-    
-    document.getElementById('conversationsList').style.display = 'none';
-    document.getElementById('requestsContainer').style.display = 'block';
-    document.getElementById('showRequestsBtn').classList.remove('btn-outline');
-    document.getElementById('showRequestsBtn').classList.add('btn');
-    document.getElementById('showConversationsBtn').classList.remove('btn');
-    document.getElementById('showConversationsBtn').classList.add('btn-outline');
-    
-    // Mark requests as read when viewing them
-    markRequestsAsRead();
+// Initialize Message Requests UI
+function initializeMessageRequestsUI() {
+    addMessageRequestsToNav();
+    createMessageRequestsSection();
 }
 
 // Load message requests
@@ -2800,6 +2786,10 @@ async function loadMessageRequests() {
     if (!currentUser) return;
     
     try {
+        if (unsubscribeRequests) {
+            unsubscribeRequests();
+        }
+        
         unsubscribeRequests = db.collection('messageRequests')
             .where('receiverId', '==', currentUser.uid)
             .where('status', '==', 'pending')
@@ -2807,6 +2797,7 @@ async function loadMessageRequests() {
             .onSnapshot(async (snapshot) => {
                 messageRequests = [];
                 const requestsContainer = document.getElementById('requestsContainer');
+                const navBadge = document.getElementById('navRequestsBadge');
                 
                 if (!requestsContainer) return;
                 
@@ -2818,8 +2809,8 @@ async function loadMessageRequests() {
                             <p>You don't have any pending message requests</p>
                         </div>
                     `;
-                    if (document.getElementById('requestsBadge')) {
-                        document.getElementById('requestsBadge').style.display = 'none';
+                    if (navBadge) {
+                        navBadge.style.display = 'none';
                     }
                     return;
                 }
@@ -2844,19 +2835,25 @@ async function loadMessageRequests() {
                         requestElement.innerHTML = `
                             <div class="conversation-img">
                                 ${sender.photoURL ? 
-                                    `<img src="${sender.photoURL}" alt="${sender.fullName}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
-                                    `<i class="fas fa-user"></i>`
+                                    `<img src="${sender.photoURL}" alt="${sender.fullName}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">` : 
+                                    `<i class="fas fa-user" style="font-size: 1.5rem;"></i>`
                                 }
                             </div>
-                            <div class="conversation-info" style="flex: 1;">
+                            <div class="conversation-info" style="flex: 1; margin-left: 1rem;">
                                 <div class="conversation-name">${sender.fullName}</div>
-                                <div class="request-preview">${request.message}</div>
+                                <div class="request-preview">"${request.message}"</div>
+                                <div class="request-details" style="font-size: 0.8rem; color: #666; margin-top: 0.25rem;">
+                                    ${new Date(request.timestamp?.toDate()).toLocaleString()}
+                                </div>
                                 <div class="request-actions">
-                                    <button class="request-btn request-accept" onclick="acceptMessageRequest('${request.id}', '${request.senderId}')">
-                                        Accept
+                                    <button class="btn request-accept" onclick="acceptMessageRequest('${request.id}', '${request.senderId}')" style="padding: 0.5rem 1rem;">
+                                        <i class="fas fa-check"></i> Accept
                                     </button>
-                                    <button class="request-btn request-decline" onclick="declineMessageRequest('${request.id}')">
-                                        Decline
+                                    <button class="btn request-decline" onclick="declineMessageRequest('${request.id}')" style="padding: 0.5rem 1rem; margin-left: 0.5rem;">
+                                        <i class="fas fa-times"></i> Decline
+                                    </button>
+                                    <button class="btn btn-outline" onclick="viewUserProfile('${request.senderId}')" style="padding: 0.5rem 1rem; margin-left: 0.5rem;">
+                                        <i class="fas fa-user"></i> View Profile
                                     </button>
                                 </div>
                             </div>
@@ -2866,13 +2863,15 @@ async function loadMessageRequests() {
                     }
                 }
                 
-                // Update badge
-                const badge = document.getElementById('requestsBadge');
-                if (badge && unreadCount > 0) {
-                    badge.textContent = unreadCount;
-                    badge.style.display = 'inline-flex';
-                } else if (badge) {
-                    badge.style.display = 'none';
+                // Update navigation badge
+                if (navBadge) {
+                    if (unreadCount > 0) {
+                        navBadge.textContent = unreadCount;
+                        navBadge.style.display = 'inline-flex';
+                        document.getElementById('messageRequestsNav').style.display = 'list-item';
+                    } else {
+                        navBadge.style.display = 'none';
+                    }
                 }
             });
     } catch (error) {
@@ -2902,7 +2901,7 @@ async function markRequestsAsRead() {
     }
 }
 
-// Accept message request
+// Accept message request and start conversation
 async function acceptMessageRequest(requestId, senderId) {
     try {
         // Update request status
@@ -2915,6 +2914,11 @@ async function acceptMessageRequest(requestId, senderId) {
         await startConversation(senderId);
         
         showNotification('Message request accepted', 'success');
+        
+        // Navigate to messages
+        showSection('messages');
+        updateActiveNav('messages');
+        
     } catch (error) {
         console.error('Error accepting message request:', error);
         showNotification('Error accepting request', 'error');
@@ -2930,63 +2934,88 @@ async function declineMessageRequest(requestId) {
         });
         
         showNotification('Message request declined', 'success');
+        
+        // Reload requests
+        loadMessageRequests();
+        
     } catch (error) {
         console.error('Error declining message request:', error);
         showNotification('Error declining request', 'error');
     }
 }
 
-// Send message with request system for non-contacts
-async function sendMessageWithRequest(conversationId, otherUserId, messageText) {
+// Send message with request system
+async function sendMessageWithRequest(otherUserId, messageText) {
     try {
-        // For now, assume everyone is a contact (bypass request system)
-        // You can implement contact checking later
+        // Check if conversation already exists
+        const existingConvo = await db.collection('conversations')
+            .where('participants', 'array-contains', currentUser.uid)
+            .get();
         
-        // Original message sending code
-        const messageData = {
-            text: messageText,
-            senderId: currentUser.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
+        let isExistingContact = false;
+        existingConvo.forEach(doc => {
+            const convo = doc.data();
+            if (convo.participants.includes(otherUserId)) {
+                isExistingContact = true;
+            }
+        });
         
-        await db.collection('conversations')
-            .doc(conversationId)
-            .collection('messages')
-            .add(messageData);
-        
-        await db.collection('conversations')
-            .doc(conversationId)
-            .update({
-                lastMessage: messageText,
-                lastMessageSender: currentUser.uid,
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        if (isExistingContact) {
+            // Existing contact - send message directly
+            await startConversation(otherUserId);
+            // Message will be sent in the chat input
+        } else {
+            // New contact - create message request
+            await db.collection('messageRequests').add({
+                senderId: currentUser.uid,
+                receiverId: otherUserId,
+                message: messageText,
+                status: 'pending',
+                read: false,
+                timestamp: new Date()
             });
             
+            showNotification('Message request sent! They need to accept it first.', 'success');
+        }
+        
     } catch (error) {
-        console.error('Error sending message:', error);
+        console.error('Error sending message with request:', error);
         showNotification('Error sending message', 'error');
     }
 }
 
-// Initialize when messages section is loaded
-const originalShowSection = showSection;
-showSection = function(sectionId) {
-    originalShowSection(sectionId);
+// Modified send message function for requests
+async function sendMessageToNewContact(otherUserId, messageText) {
+    await sendMessageWithRequest(otherUserId, messageText);
+}
+
+// Update navigation for authenticated users
+const originalUpdateNavigation = updateNavigation;
+updateNavigation = function(isAuthenticated) {
+    originalUpdateNavigation(isAuthenticated);
     
-    if (sectionId === 'messages' && currentUser) {
-        // Initialize UI with slight delay to ensure DOM is ready
-        setTimeout(() => {
-            initializeMessageRequestsUI();
-            loadMessageRequests();
-        }, 100);
-    }
-    
-    // Clean up message requests listener when leaving messages
-    if (unsubscribeRequests && !sectionId.includes('messages')) {
-        unsubscribeRequests();
-        unsubscribeRequests = null;
+    if (isAuthenticated && currentUser) {
+        // Show message requests in nav
+        if (document.getElementById('messageRequestsNav')) {
+            document.getElementById('messageRequestsNav').style.display = 'list-item';
+        }
+        // Load message requests
+        loadMessageRequests();
+    } else {
+        // Hide message requests in nav
+        if (document.getElementById('messageRequestsNav')) {
+            document.getElementById('messageRequestsNav').style.display = 'none';
+        }
     }
 };
+
+// Initialize when app loads
+setTimeout(() => {
+    initializeMessageRequestsUI();
+    if (currentUser) {
+        loadMessageRequests();
+    }
+}, 1000);
 
 // Add CSS for message requests
 const style = document.createElement('style');
@@ -2996,30 +3025,27 @@ style.textContent = `
         border-radius: var(--border-radius);
         overflow-y: auto;
         box-shadow: var(--shadow);
-        max-height: 400px;
+        max-height: 70vh;
+        padding: 1rem;
     }
     .request-item {
         display: flex;
-        align-items: center;
-        padding: 1rem;
+        align-items: flex-start;
+        padding: 1.5rem;
         border-bottom: 1px solid #eee;
-        cursor: pointer;
         transition: var(--transition);
     }
     .request-item:hover {
         background-color: #f9f9f9;
     }
+    .request-item:last-child {
+        border-bottom: none;
+    }
     .request-actions {
         display: flex;
         gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-    .request-btn {
-        padding: 0.4rem 0.8rem;
-        border: none;
-        border-radius: var(--border-radius);
-        cursor: pointer;
-        font-size: 0.8rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
     }
     .request-accept {
         background-color: var(--success-color);
@@ -3030,9 +3056,13 @@ style.textContent = `
         color: white;
     }
     .request-preview {
-        font-size: 0.9rem;
-        color: #666;
-        margin-top: 0.25rem;
+        font-size: 1rem;
+        color: #333;
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+    #navRequestsBadge {
+        display: none;
     }
 `;
 document.head.appendChild(style);
@@ -3040,11 +3070,7 @@ document.head.appendChild(style);
 console.log("Message Requests system loaded successfully!");
         
         
-        
-        
-        
-        
-        
+
         
         
         
