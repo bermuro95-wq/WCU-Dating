@@ -2724,6 +2724,7 @@ async function viewUserProfile(userId) {
         
         
         
+
 // ==================== MESSAGE REQUESTS SYSTEM ====================
 
 // Message Requests Variables
@@ -2804,8 +2805,6 @@ function showNotification(message, type) {
             console.log('Vibration not supported');
         }
     }
-    
-    console.log('Notification shown:', message, type);
 }
 
 // Load message requests with REAL data
@@ -2817,8 +2816,6 @@ async function loadMessageRequests() {
             unsubscribeRequests();
         }
         
-        console.log("Loading message requests for user:", currentUser.uid);
-        
         unsubscribeRequests = db.collection('messageRequests')
             .where('receiverId', '==', currentUser.uid)
             .where('status', '==', 'pending')
@@ -2828,12 +2825,7 @@ async function loadMessageRequests() {
                 const requestsContainer = document.getElementById('requestsContainer');
                 const navBadge = document.getElementById('navRequestsBadge');
                 
-                if (!requestsContainer) {
-                    console.error("Requests container not found!");
-                    return;
-                }
-                
-                console.log("Found", snapshot.size, "message requests");
+                if (!requestsContainer) return;
                 
                 if (snapshot.empty) {
                     requestsContainer.innerHTML = `
@@ -2908,13 +2900,13 @@ async function loadMessageRequests() {
                                 </p>
                                 <div class="request-actions" style="margin-top: 1rem;">
                                     <button class="btn request-accept" onclick="acceptMessageRequest('${request.id}', '${request.senderId}')" style="padding: 0.5rem 1.5rem;">
-                                        <i class="fas fa-check"></i> Accept
+                                        <i class="fas fa-check"></i> Accept & Chat
+                                    </button>
+                                    <button class="btn btn-outline" onclick="viewUserProfile('${request.senderId}')" style="padding: 0.5rem 1.5rem; margin-left: 0.5rem;">
+                                        <i class="fas fa-user"></i> View Profile
                                     </button>
                                     <button class="btn request-decline" onclick="declineMessageRequest('${request.id}')" style="padding: 0.5rem 1.5rem; margin-left: 0.5rem;">
                                         <i class="fas fa-times"></i> Decline
-                                    </button>
-                                    <button class="btn btn-outline" onclick="viewUserProfile('${request.senderId}')" style="padding: 0.5rem 1.5rem; margin-left: 0.5rem;">
-                                        <i class="fas fa-user"></i> Profile
                                     </button>
                                 </div>
                             </div>
@@ -3025,30 +3017,6 @@ async function declineMessageRequest(requestId) {
     }
 }
 
-// Send test message request
-async function sendTestMessageRequest() {
-    if (!currentUser) {
-        showNotification('Please login first to test messages', 'warning');
-        return;
-    }
-    
-    try {
-        await db.collection('messageRequests').add({
-            senderId: currentUser.uid,
-            receiverId: currentUser.uid,
-            message: "This is a test message request! " + new Date().toLocaleTimeString(),
-            status: 'pending',
-            read: false,
-            timestamp: new Date()
-        });
-        
-        showNotification('Test message request sent! Check your requests.', 'success');
-    } catch (error) {
-        console.error('Error sending test request:', error);
-        showNotification('Error sending test request', 'error');
-    }
-}
-
 // Initialize UI
 function initializeMessageRequestsUI() {
     addMessageRequestsToNav();
@@ -3122,6 +3090,14 @@ style.textContent = `
             font-size: 14px;
             padding: 12px 15px;
         }
+        .request-actions {
+            flex-direction: column;
+            gap: 0.5rem !important;
+        }
+        .request-actions button {
+            margin-left: 0 !important;
+            width: 100%;
+        }
     }
     
     /* Ensure notifications are visible on all devices */
@@ -3159,10 +3135,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-
-        
-        
-        
+console.log("Message Requests system loaded successfully!");
         
 
         
