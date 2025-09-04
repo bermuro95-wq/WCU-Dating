@@ -2734,9 +2734,7 @@ async function viewUserProfile(userId) {
         
         
         
-        
-      
-     // ==================== MESSAGE NOTIFICATIONS SYSTEM ====================
+// ==================== REAL MESSAGE NOTIFICATIONS SYSTEM ====================
 
 let messageNotifications = [];
 let unsubscribeNotifications = null;
@@ -2760,7 +2758,6 @@ function addNotificationsToNav() {
             e.preventDefault();
             showSection('notifications');
             updateActiveNav('notifications');
-            markNotificationsAsRead();
         });
     }
 }
@@ -2779,7 +2776,7 @@ function createNotificationsSection() {
                     <div class="empty-state">
                         <i class="fas fa-bell" style="font-size: 3rem; color: var(--success-color); margin-bottom: 1rem;"></i>
                         <h3>All caught up!</h3>
-                        <p>No new notifications</p>
+                        <p>No new message notifications</p>
                     </div>
                 </div>
             </div>
@@ -2788,7 +2785,7 @@ function createNotificationsSection() {
     }
 }
 
-// Load message notifications - FIXED VERSION
+// Load REAL message notifications - FIXED VERSION
 async function loadMessageNotifications() {
     if (!currentUser) return;
     
@@ -2797,76 +2794,39 @@ async function loadMessageNotifications() {
             unsubscribeNotifications();
         }
         
-        const notificationsContainer = document.getElementById('notificationsContainer');
         const badge = document.getElementById('notificationsBadge');
+        if (!badge) return;
         
-        if (!notificationsContainer) return;
-        
+        // Listen for NEW messages where current user is NOT the sender
         unsubscribeNotifications = db.collection('conversations')
             .where('participants', 'array-contains', currentUser.uid)
             .orderBy('lastUpdated', 'desc')
             .onSnapshot(async (snapshot) => {
-                messageNotifications = [];
                 let unreadCount = 0;
-                
-                // Don't show loading spinner, keep current content until we have data
-                
-                if (snapshot.empty) {
-                    // Only show empty state if we're actually in notifications section
-                    if (document.getElementById('notifications')?.classList.contains('active')) {
-                        notificationsContainer.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-bell" style="font-size: 3rem; color: var(--success-color); margin-bottom: 1rem;"></i>
-                                <h3>All caught up!</h3>
-                                <p>No new notifications</p>
-                            </div>
-                        `;
-                    }
-                    if (badge) badge.style.display = 'none';
-                    return;
-                }
-                
-                const notificationItems = [];
+                const unreadMessages = [];
                 
                 for (const doc of snapshot.docs) {
                     const conversation = doc.data();
                     const otherUserId = conversation.participants.find(uid => uid !== currentUser.uid);
                     
-                    if (!otherUserId) continue;
+                    if (!otherUserId || conversation.lastMessageSender === currentUser.uid) {
+                        continue; // Skip if no other user or if current user sent last message
+                    }
                     
                     try {
                         const userDoc = await db.collection('users').doc(otherUserId).get();
                         if (userDoc.exists) {
                             const user = userDoc.data();
-                            const lastMessage = conversation.lastMessage || 'Sent a message';
-                            const isUnread = conversation.lastMessageSender !== currentUser.uid;
+                            unreadCount++;
                             
-                            if (isUnread) {
-                                unreadCount++;
-                                
-                                notificationItems.push(`
-                                    <div class="notification-item" style="padding: 1rem; margin-bottom: 1rem; border-radius: 10px; background: white; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;" onclick="startConversation('${otherUserId}'); showSection('messages'); updateActiveNav('messages');">
-                                        <div style="display: flex; align-items: center; gap: 1rem;">
-                                            <div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: var(--accent-color); display: flex; align-items: center; justify-content: center;">
-                                                ${user.photoURL ? 
-                                                    `<img src="${user.photoURL}" alt="${user.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                                                    `<i class="fas fa-user" style="font-size: 1.5rem; color: var(--primary-color);"></i>`
-                                                }
-                                            </div>
-                                            <div style="flex: 1;">
-                                                <h4 style="color: var(--primary-color); margin: 0 0 0.25rem 0;">${user.fullName}</h4>
-                                                <p style="color: #666; margin: 0; font-size: 0.9rem;">${lastMessage}</p>
-                                                <p style="color: #999; margin: 0.25rem 0 0 0; font-size: 0.8rem;">
-                                                    ${conversation.lastUpdated?.toDate().toLocaleString() || 'Just now'}
-                                                </p>
-                                            </div>
-                                            <div style="width: 12px; height: 12px; background: var(--success-color); border-radius: 50%;"></div>
-                                        </div>
-                                    </div>
-                                `);
-                            }
-                            
-                            messageNotifications.push({ conversation: doc.id, user, isUnread });
+                            unreadMessages.push({
+                                userId: otherUserId,
+                                userName: user.fullName,
+                                userPhoto: user.photoURL,
+                                message: conversation.lastMessage || 'Sent you a message',
+                                timestamp: conversation.lastUpdated?.toDate() || new Date(),
+                                conversationId: doc.id
+                            });
                         }
                     } catch (error) {
                         console.error('Error loading user info:', error);
@@ -2874,59 +2834,77 @@ async function loadMessageNotifications() {
                 }
                 
                 // Update badge - GREEN COLOR
-                if (badge) {
-                    if (unreadCount > 0) {
-                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-                        badge.style.display = 'inline-flex';
-                        badge.style.background = 'var(--success-color)';
-                        document.getElementById('notificationsNav').style.display = 'list-item';
-                        
-                        // Show notification only for new messages
-                        showNotification(`New message${unreadCount > 1 ? 's' : ''} from ${unreadCount} person${unreadCount > 1 ? 's' : ''}`, 'info');
-                    } else {
-                        badge.style.display = 'none';
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.style.display = 'inline-flex';
+                    document.getElementById('notificationsNav').style.display = 'list-item';
+                    
+                    // Update notifications container if we're in notifications section
+                    if (document.getElementById('notifications')?.classList.contains('active')) {
+                        updateNotificationsContainer(unreadMessages);
                     }
-                }
-                
-                // Only update container if we're in notifications section
-                if (document.getElementById('notifications')?.classList.contains('active')) {
-                    if (notificationItems.length > 0) {
-                        notificationsContainer.innerHTML = notificationItems.join('');
-                    } else {
-                        notificationsContainer.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-bell" style="font-size: 3rem; color: var(--success-color); margin-bottom: 1rem;"></i>
-                                <h3>All caught up!</h3>
-                                <p>No new notifications</p>
-                            </div>
-                        `;
+                } else {
+                    badge.style.display = 'none';
+                    if (document.getElementById('notifications')?.classList.contains('active')) {
+                        showEmptyState();
                     }
                 }
             });
-            
+        
     } catch (error) {
         console.error('Error loading notifications:', error);
     }
 }
 
-// Mark notifications as read
-async function markNotificationsAsRead() {
-    if (!currentUser) return;
+// Update notifications container with real messages
+function updateNotificationsContainer(messages) {
+    const container = document.getElementById('notificationsContainer');
+    if (!container) return;
     
-    try {
-        const badge = document.getElementById('notificationsBadge');
-        if (badge) {
-            badge.style.display = 'none';
-        }
-        
-        // Update UI to show all notifications as read
-        document.querySelectorAll('.notification-item').forEach(item => {
-            const dot = item.querySelector('div[style*="background: var(--success-color)"]');
-            if (dot) dot.remove();
-        });
-        
-    } catch (error) {
-        console.error('Error marking notifications as read:', error);
+    if (messages.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    const notificationsHTML = messages.map(msg => `
+        <div class="notification-item" style="padding: 1.5rem; margin-bottom: 1rem; border-radius: 12px; background: white; border: 2px solid var(--success-color); box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.3s ease;" 
+             onclick="startConversation('${msg.userId}'); showSection('messages'); updateActiveNav('messages');">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: var(--accent-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    ${msg.userPhoto ? 
+                        `<img src="${msg.userPhoto}" alt="${msg.userName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                        `<i class="fas fa-user" style="font-size: 2rem; color: var(--primary-color);"></i>`
+                    }
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="color: var(--primary-color); margin: 0 0 0.5rem 0; font-size: 1.2rem;">${msg.userName}</h3>
+                    <p style="color: #333; margin: 0 0 0.5rem 0; font-size: 1rem; line-height: 1.4;">
+                        <strong>${msg.message}</strong>
+                    </p>
+                    <p style="color: #666; margin: 0; font-size: 0.9rem;">
+                        ${msg.timestamp.toLocaleDateString()} • ${msg.timestamp.toLocaleTimeString()}
+                    </p>
+                </div>
+                <div style="width: 16px; height: 16px; background: var(--success-color); border-radius: 50%; flex-shrink: 0;"></div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = notificationsHTML;
+}
+
+// Show empty state
+function showEmptyState() {
+    const container = document.getElementById('notificationsContainer');
+    if (container) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-bell" style="font-size: 4rem; color: var(--success-color); margin-bottom: 1.5rem;"></i>
+                <h2 style="color: var(--primary-color); margin-bottom: 1rem;">All caught up!</h2>
+                <p style="color: #666; font-size: 1.1rem;">No new message notifications</p>
+                <p style="color: #999; margin-top: 0.5rem;">You'll see notifications here when someone messages you</p>
+            </div>
+        `;
     }
 }
 
@@ -2935,14 +2913,9 @@ const originalShowSection = showSection;
 showSection = function(sectionId) {
     originalShowSection(sectionId);
     
-    // Only load notifications if we're actually viewing the notifications section
     if (sectionId === 'notifications' && currentUser) {
+        // Reload notifications when viewing the section
         loadMessageNotifications();
-    }
-    
-    // Mark as read when viewing notifications
-    if (sectionId === 'notifications') {
-        markNotificationsAsRead();
     }
 };
 
@@ -2955,7 +2928,6 @@ updateNavigation = function(isAuthenticated) {
         if (document.getElementById('notificationsNav')) {
             document.getElementById('notificationsNav').style.display = 'list-item';
         }
-        // Load notifications in background but don't update UI unless in notifications section
         loadMessageNotifications();
     }
 };
@@ -2985,47 +2957,48 @@ notificationStyle.textContent = `
     }
     
     .notification-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        border-color: var(--success-color) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        border-color: var(--primary-color) !important;
     }
     
     #notificationsBadge {
-        animation: pulse 2s infinite;
+        animation: pulse 1.5s infinite;
         background: var(--success-color) !important;
     }
     
     @keyframes pulse {
         0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
+        50% { transform: scale(1.2); }
         100% { transform: scale(1); }
     }
     
     .empty-state {
         text-align: center;
-        padding: 3rem 1rem;
+        padding: 3rem 2rem;
         color: #666;
     }
     
     .empty-state i {
-        font-size: 4rem;
-        color: var(--success-color);
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
     
     @media (max-width: 768px) {
         .notification-item {
-            padding: 0.75rem !important;
-            margin-bottom: 0.5rem !important;
+            padding: 1.2rem !important;
+            margin-bottom: 0.8rem !important;
+        }
+        
+        .notification-item div {
+            gap: 0.8rem !important;
         }
     }
 `;
 document.head.appendChild(notificationStyle);
 
-console.log("Message Notifications system loaded successfully!");
-        
-        
-        
+console.log("Real Message Notifications system loaded successfully!");
+      
+
         
 
         
