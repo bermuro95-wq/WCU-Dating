@@ -2726,387 +2726,376 @@ async function viewUserProfile(userId) {
         
         
 
-// ==================== MESSAGE REQUESTS SYSTEM ====================
 
-// Message Requests Variables
-let messageRequests = [];
-let unsubscribeRequests = null;
+        
+        
+        // ==================== MESSAGE STATUS & TYPING INDICATOR SYSTEM ====================
 
-// Add message requests to navigation
-function addMessageRequestsToNav() {
-    const navMenu = document.getElementById('navMenu');
-    const messagesNav = document.getElementById('messagesNav');
-    
-    if (messagesNav && !document.getElementById('messageRequestsNav')) {
-        const messageRequestsNav = document.createElement('li');
-        messageRequestsNav.innerHTML = `
-            <a href="#message-requests" class="nav-link" data-section="message-requests" id="messageRequestsNav" style="display:none;">
-                <i class="fas fa-envelope"></i> Requests 
-                <span id="navRequestsBadge" style="display: none; background: var(--success-color); color: white; border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-left: 5px;"></span>
-            </a>
-        `;
-        navMenu.insertBefore(messageRequestsNav, messagesNav.nextSibling);
-        
-        // Add click handler
-        document.getElementById('messageRequestsNav').addEventListener('click', function(e) {
-            e.preventDefault();
-            showSection('message-requests');
-            updateActiveNav('message-requests');
-            markRequestsAsRead();
-        });
-    }
-}
+// Message status variables
+let typingTimeout = null;
+let currentChatId = null;
+let typingListener = null;
 
-// Create Message Requests section
-function createMessageRequestsSection() {
-    if (!document.getElementById('message-requests')) {
-        const main = document.querySelector('main');
-        const messageRequestsSection = document.createElement('section');
-        messageRequestsSection.id = 'message-requests';
-        messageRequestsSection.className = 'section';
-        messageRequestsSection.innerHTML = `
-            <div class="form-container">
-                <h2 class="form-title">Message Requests</h2>
-                <div id="requestsContainer">
-                    <div class="empty-state">
-                        <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <h3>No message requests yet</h3>
-                        <p>When someone sends you a message, it will appear here</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        main.appendChild(messageRequestsSection);
-    }
-}
-
-// Load message requests - SIMPLIFIED AND FIXED
-async function loadMessageRequests() {
-    if (!currentUser) return;
-    
-    try {
-        // Clean up previous listener
-        if (unsubscribeRequests) {
-            unsubscribeRequests();
-        }
+// Add message status indicators to your existing message element
+function enhanceMessageElement(messageElement, message, isCurrentUser) {
+    const messageTime = messageElement.querySelector('.message-time');
+    if (messageTime) {
+        let statusHTML = '';
         
-        const requestsContainer = document.getElementById('requestsContainer');
-        const navBadge = document.getElementById('navRequestsBadge');
-        
-        if (!requestsContainer) {
-            console.error("Requests container not found!");
-            return;
-        }
-        
-        // Show loading state
-        requestsContainer.innerHTML = '<div class="spinner"></div>';
-        
-        // Get message requests
-        const snapshot = await db.collection('messageRequests')
-            .where('receiverId', '==', currentUser.uid)
-            .where('status', '==', 'pending')
-            .orderBy('timestamp', 'desc')
-            .get();
-        
-        messageRequests = [];
-        let unreadCount = 0;
-        
-        if (snapshot.empty) {
-            requestsContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                    <h3>No message requests</h3>
-                    <p>You don't have any pending message requests</p>
-                </div>
-            `;
-            if (navBadge) {
-                navBadge.style.display = 'none';
-            }
-            return;
-        }
-        
-        // Process each request
-        requestsContainer.innerHTML = '';
-        
-        for (const doc of snapshot.docs) {
-            const request = { 
-                id: doc.id, 
-                ...doc.data(),
-                timestamp: doc.data().timestamp?.toDate() || new Date()
-            };
-            messageRequests.push(request);
-            
-            if (!request.read) {
-                unreadCount++;
-            }
-            
-            try {
-                // Get sender information
-                const senderDoc = await db.collection('users').doc(request.senderId).get();
-                
-                if (senderDoc.exists) {
-                    const sender = senderDoc.data();
-                    const requestElement = document.createElement('div');
-                    requestElement.className = 'request-item';
-                    requestElement.innerHTML = `
-                        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: var(--accent-color); display: flex; align-items: center; justify-content: center;">
-                                ${sender.photoURL ? 
-                                    `<img src="${sender.photoURL}" alt="${sender.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                                    `<i class="fas fa-user" style="font-size: 2rem; color: var(--primary-color);"></i>`
-                                }
-                            </div>
-                            <div style="flex: 1;">
-                                <h3 style="color: var(--primary-color); margin-bottom: 0.5rem;">${sender.fullName}</h3>
-                                <p style="color: #666; margin-bottom: 0.5rem; background: #f9f9f9; padding: 0.75rem; border-radius: 8px; border-left: 4px solid var(--primary-light);">
-                                    "${request.message}"
-                                </p>
-                                <p style="font-size: 0.8rem; color: #999; margin-bottom: 1rem;">
-                                    ${request.timestamp.toLocaleDateString()} at ${request.timestamp.toLocaleTimeString()}
-                                </p>
-                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                    <button class="btn" onclick="acceptMessageRequest('${request.id}', '${request.senderId}')" style="background: var(--success-color);">
-                                        <i class="fas fa-check"></i> Accept & Chat
-                                    </button>
-                                    <button class="btn btn-outline" onclick="viewUserProfile('${request.senderId}')">
-                                        <i class="fas fa-user"></i> View Profile
-                                    </button>
-                                    <button class="btn" onclick="declineMessageRequest('${request.id}')" style="background: var(--error-color); color: white;">
-                                        <i class="fas fa-times"></i> Decline
-                                    </button>
-                                </div>
-                            </div>
-                            ${!request.read ? 
-                                '<div style="width: 12px; height: 12px; background: var(--success-color); border-radius: 50%; margin-left: 10px;"></div>' : 
-                                ''
-                            }
-                        </div>
-                    `;
-                    
-                    requestsContainer.appendChild(requestElement);
-                }
-            } catch (error) {
-                console.error('Error loading sender info:', error);
-            }
-        }
-        
-        // Update navigation badge
-        if (navBadge) {
-            if (unreadCount > 0) {
-                navBadge.textContent = unreadCount;
-                navBadge.style.display = 'inline-flex';
-                document.getElementById('messageRequestsNav').style.display = 'list-item';
-                
-                // Show notification
-                showNotification(`You have ${unreadCount} new message request${unreadCount > 1 ? 's' : ''}`, 'info');
+        if (isCurrentUser) {
+            if (message.seen) {
+                statusHTML = `<span style="color: var(--success-color); margin-left: 5px;"><i class="fas fa-check-double"></i> Seen</span>`;
+            } else if (message.delivered) {
+                statusHTML = `<span style="color: var(--primary-color); margin-left: 5px;"><i class="fas fa-check-double"></i> Delivered</span>`;
             } else {
-                navBadge.style.display = 'none';
+                statusHTML = `<span style="color: #999; margin-left: 5px;"><i class="fas fa-check"></i> Sent</span>`;
             }
         }
         
-        // Set up real-time listener for new requests
-        unsubscribeRequests = db.collection('messageRequests')
-            .where('receiverId', '==', currentUser.uid)
-            .where('status', '==', 'pending')
-            .orderBy('timestamp', 'desc')
-            .onSnapshot((snapshot) => {
-                // Just update badge count for real-time, don't reload everything
-                const newCount = snapshot.size;
-                if (navBadge && newCount > 0) {
-                    navBadge.textContent = newCount;
-                    navBadge.style.display = 'inline-flex';
-                } else if (navBadge) {
-                    navBadge.style.display = 'none';
-                }
+        messageTime.innerHTML += statusHTML;
+    }
+}
+
+// Update message status in Firestore
+async function updateMessageStatus(conversationId, messageId, status) {
+    try {
+        await db.collection('conversations')
+            .doc(conversationId)
+            .collection('messages')
+            .doc(messageId)
+            .update({
+                [status]: true,
+                statusUpdatedAt: new Date()
             });
-            
     } catch (error) {
-        console.error('Error loading message requests:', error);
-        const requestsContainer = document.getElementById('requestsContainer');
-        if (requestsContainer) {
-            requestsContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--warning-color); margin-bottom: 1rem;"></i>
-                    <h3>Unable to load requests</h3>
-                    <p>Please check your connection and try again</p>
-                    <button class="btn" onclick="loadMessageRequests()" style="margin-top: 1rem;">
-                        <i class="fas fa-refresh"></i> Try Again
-                    </button>
-                </div>
-            `;
-        }
+        console.error('Error updating message status:', error);
     }
 }
 
-// Mark requests as read
-async function markRequestsAsRead() {
-    if (!currentUser) return;
+// Mark messages as delivered when they are visible in chat
+function setupMessageDeliveryTracking(conversationId) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const messageElement = entry.target;
+                const messageId = messageElement.dataset.messageId;
+                
+                if (messageId && !messageElement.classList.contains('sent')) {
+                    updateMessageStatus(conversationId, messageId, 'delivered');
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+
+    // Observe all received messages
+    chatMessages.querySelectorAll('.message.received').forEach(messageElement => {
+        observer.observe(messageElement);
+    });
+}
+
+// Mark messages as seen when chat is opened
+async function markMessagesAsSeen(conversationId) {
+    try {
+        const messagesSnapshot = await db.collection('conversations')
+            .doc(conversationId)
+            .collection('messages')
+            .where('senderId', '!=', currentUser.uid)
+            .where('seen', '==', false)
+            .get();
+
+        const batch = db.batch();
+        messagesSnapshot.forEach(doc => {
+            const messageRef = db.collection('conversations')
+                .doc(conversationId)
+                .collection('messages')
+                .doc(doc.id);
+            batch.update(messageRef, { 
+                seen: true,
+                seenAt: new Date()
+            });
+        });
+
+        await batch.commit();
+    } catch (error) {
+        console.error('Error marking messages as seen:', error);
+    }
+}
+
+// Typing indicator functions
+function setupTypingIndicator(conversationId, otherUserId) {
+    // Clean up previous listener
+    if (typingListener) {
+        typingListener();
+    }
+
+    // Listen for typing events
+    typingListener = db.collection('conversations')
+        .doc(conversationId)
+        .collection('typing')
+        .doc(otherUserId)
+        .onSnapshot((doc) => {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (doc.exists && doc.data().typing) {
+                typingIndicator.style.display = 'block';
+            } else {
+                typingIndicator.style.display = 'none';
+            }
+        });
+
+    // Set up typing detection
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('input', handleTyping.bind(null, conversationId));
+    }
+}
+
+function handleTyping(conversationId) {
+    // Clear previous timeout
+    if (typingTimeout) {
+        clearTimeout(typingTimeout);
+    }
+
+    // Set user as typing
+    setUserTyping(conversationId, true);
+
+    // Set timeout to stop typing indicator after 2 seconds of inactivity
+    typingTimeout = setTimeout(() => {
+        setUserTyping(conversationId, false);
+    }, 2000);
+}
+
+async function setUserTyping(conversationId, isTyping) {
+    try {
+        await db.collection('conversations')
+            .doc(conversationId)
+            .collection('typing')
+            .doc(currentUser.uid)
+            .set({
+                typing: isTyping,
+                timestamp: new Date(),
+                userName: userProfile?.fullName || 'User'
+            }, { merge: true });
+    } catch (error) {
+        console.error('Error setting typing status:', error);
+    }
+}
+
+// Enhanced loadConversation function with message status
+const originalLoadConversation = loadConversation;
+loadConversation = async function(conversationId, otherUserId) {
+    await originalLoadConversation(conversationId, otherUserId);
+    
+    // Store current chat ID
+    currentChatId = conversationId;
+    
+    // Setup typing indicator
+    setupTypingIndicator(conversationId, otherUserId);
+    
+    // Mark messages as seen
+    markMessagesAsSeen(conversationId);
+    
+    // Setup delivery tracking
+    setTimeout(() => setupMessageDeliveryTracking(conversationId), 500);
+};
+
+// Enhanced send message function with status tracking
+const originalSendMessage = async function() {
+    const chatInput = document.getElementById('chatInput');
+    const messageInput = document.getElementById('messageInput');
+    const conversationId = chatInput.dataset.conversationId;
+    const otherUserId = chatInput.dataset.otherUserId;
+    const messageText = messageInput.value.trim();
+    
+    if (!messageText || !conversationId) return;
     
     try {
-        const requestsRef = db.collection('messageRequests')
-            .where('receiverId', '==', currentUser.uid)
-            .where('status', '==', 'pending')
-            .where('read', '==', false);
+        // Stop typing indicator
+        setUserTyping(conversationId, false);
         
-        const snapshot = await requestsRef.get();
+        // Add message to conversation
+        const messageData = {
+            text: messageText,
+            senderId: currentUser.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            delivered: false,
+            seen: false,
+            status: 'sent'
+        };
         
-        const updatePromises = [];
-        snapshot.forEach(doc => {
-            updatePromises.push(doc.ref.update({ read: true }));
-        });
+        const messageRef = await db.collection('conversations')
+            .doc(conversationId)
+            .collection('messages')
+            .add(messageData);
         
-        await Promise.all(updatePromises);
+        // Update conversation last message and timestamp
+        await db.collection('conversations')
+            .doc(conversationId)
+            .update({
+                lastMessage: messageText,
+                lastMessageSender: currentUser.uid,
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            });
         
-        // Update badge
-        const navBadge = document.getElementById('navRequestsBadge');
-        if (navBadge) {
-            navBadge.style.display = 'none';
-        }
-        
-    } catch (error) {
-        console.error('Error marking requests as read:', error);
-    }
-}
-
-// Accept message request
-async function acceptMessageRequest(requestId, senderId) {
-    try {
-        // Update request status
-        await db.collection('messageRequests').doc(requestId).update({
-            status: 'accepted',
-            respondedAt: new Date()
-        });
-        
-        showNotification('Message request accepted! Starting conversation...', 'success');
-        
-        // Remove the request from UI
-        const requestElement = document.querySelector(`[onclick="acceptMessageRequest('${requestId}', '${senderId}')"]`)?.closest('.request-item');
-        if (requestElement) {
-            requestElement.remove();
-        }
-        
-        // Create conversation
-        await startConversation(senderId);
-        
-        // Navigate to messages
-        setTimeout(() => {
-            showSection('messages');
-            updateActiveNav('messages');
-        }, 1000);
+        // Clear input
+        messageInput.value = '';
         
     } catch (error) {
-        console.error('Error accepting message request:', error);
-        showNotification('Error accepting request. Please try again.', 'error');
-    }
-}
-
-// Decline message request
-async function declineMessageRequest(requestId) {
-    try {
-        await db.collection('messageRequests').doc(requestId).update({
-            status: 'declined',
-            respondedAt: new Date()
-        });
-        
-        showNotification('Message request declined', 'success');
-        
-        // Remove the request from UI immediately
-        const requestElement = document.querySelector(`[onclick="declineMessageRequest('${requestId}')"]`)?.closest('.request-item');
-        if (requestElement) {
-            requestElement.remove();
-        }
-        
-        // If no requests left, show empty state
-        if (document.getElementById('requestsContainer').children.length === 0) {
-            document.getElementById('requestsContainer').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-envelope-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                    <h3>No message requests</h3>
-                    <p>You don't have any pending message requests</p>
-                </div>
-            `;
-        }
-        
-    } catch (error) {
-        console.error('Error declining message request:', error);
-        showNotification('Error declining request. Please try again.', 'error');
-    }
-}
-
-// Initialize UI
-function initializeMessageRequestsUI() {
-    addMessageRequestsToNav();
-    createMessageRequestsSection();
-}
-
-// Update navigation
-const originalUpdateNavigation = updateNavigation;
-updateNavigation = function(isAuthenticated) {
-    originalUpdateNavigation(isAuthenticated);
-    
-    if (isAuthenticated && currentUser) {
-        if (document.getElementById('messageRequestsNav')) {
-            document.getElementById('messageRequestsNav').style.display = 'list-item';
-        }
-        loadMessageRequests();
+        console.error('Error sending message:', error);
+        showNotification('Error sending message', 'error');
     }
 };
 
-// Initialize when user logs in
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        setTimeout(() => {
-            initializeMessageRequestsUI();
-            loadMessageRequests();
-        }, 1500);
+// Replace the original send message event listener
+document.getElementById('sendMessageBtn').addEventListener('click', originalSendMessage);
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        originalSendMessage();
     }
 });
 
-// Add CSS
-const style = document.createElement('style');
-style.textContent = `
-    .request-item {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        border: 1px solid #eee;
-    }
+// Enhanced chat messages display with status
+const originalChatDisplay = function(snapshot) {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
     
-    @media (max-width: 768px) {
-        .request-item {
-            padding: 1rem;
-            margin-bottom: 0.5rem;
+    if (snapshot.empty) {
+        chatMessages.innerHTML = '<p style="text-align: center; padding: 2rem;">No messages yet. Start a conversation!</p>';
+    } else {
+        snapshot.forEach(doc => {
+            const message = doc.data();
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.senderId === currentUser.uid ? 'sent' : 'received'}`;
+            messageElement.dataset.messageId = doc.id;
+            
+            const time = message.timestamp ? message.timestamp.toDate() : new Date();
+            const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageElement.innerHTML = `
+                <p>${message.text}</p>
+                <div class="message-time">${timeString}</div>
+            `;
+            
+            // Add message status for sent messages
+            if (message.senderId === currentUser.uid) {
+                enhanceMessageElement(messageElement, message, true);
+            }
+            
+            chatMessages.appendChild(messageElement);
+        });
+        
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+};
+
+// Add typing indicator to chat window
+function addTypingIndicatorToChat() {
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages && !document.getElementById('typingIndicator')) {
+        const typingIndicator = document.createElement('div');
+        typingIndicator.id = 'typingIndicator';
+        typingIndicator.style.display = 'none';
+        typingIndicator.style.padding = '10px 15px';
+        typingIndicator.style.margin = '5px 0';
+        typingIndicator.style.background = '#f0f0f0';
+        typingIndicator.style.borderRadius = '15px';
+        typingIndicator.style.alignSelf = 'flex-start';
+        typingIndicator.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span style="color: #666; font-size: 0.9em;">typing...</span>
+            </div>
+        `;
+        chatMessages.appendChild(typingIndicator);
+    }
+}
+
+// Initialize the system
+function initializeMessageStatusSystem() {
+    addTypingIndicatorToChat();
+    
+    // Enhance existing chat functionality
+    const originalShowSection = showSection;
+    showSection = function(sectionId) {
+        originalShowSection(sectionId);
+        
+        if (sectionId === 'messages') {
+            setTimeout(addTypingIndicatorToChat, 100);
         }
         
-        .request-actions {
-            flex-direction: column;
-            gap: 0.5rem;
+        // Clean up typing listener when leaving messages
+        if (typingListener && !sectionId.includes('messages')) {
+            typingListener();
+            typingListener = null;
         }
-        
-        .request-actions button {
-            width: 100%;
-            margin: 0;
+    };
+}
+
+// Add CSS for message status and typing indicator
+const messageStatusStyle = document.createElement('style');
+messageStatusStyle.textContent = `
+    /* Message status styles */
+    .message-time {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        font-size: 0.7rem;
+        margin-top: 0.3rem;
+        opacity: 0.8;
+    }
+    
+    /* Typing indicator styles */
+    .typing-dots {
+        display: flex;
+        gap: 3px;
+    }
+    
+    .typing-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #666;
+        animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0s; }
+    
+    @keyframes typingAnimation {
+        0%, 80%, 100% { 
+            transform: scale(0.8);
+            opacity: 0.5;
+        }
+        40% { 
+            transform: scale(1);
+            opacity: 1;
         }
     }
     
-    #navRequestsBadge {
-        animation: pulse 2s infinite;
+    /* Message status colors */
+    .message.sent .message-time {
+        color: rgba(255, 255, 255, 0.8);
     }
     
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+    .message.received .message-time {
+        color: rgba(0, 0, 0, 0.6);
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(messageStatusStyle);
 
-console.log("Message Requests system loaded successfully!");
-        
-        
-        
+// Initialize the system when page loads
+setTimeout(initializeMessageStatusSystem, 2000);
+
+console.log("Message Status & Typing Indicator system loaded successfully!");
         
         
         
