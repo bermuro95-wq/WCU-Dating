@@ -841,22 +841,28 @@
             animation: highlight 2s ease;
         }
         
-        /* Enhanced notification styles */
-        .notification {
-            max-width: 400px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
+        
+/* Enhanced notification styles */
+.notification {
+    max-width: 400px;
+    padding: 15px;
+    margin-bottom: 10px;
+}
 
-        .notification i {
-            font-size: 1.5rem;
-        }
+.notification i {
+    font-size: 1.5rem;
+}
 
-        .notification p {
-            margin: 5px 0 0 0;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
+.notification p {
+    margin: 5px 0 0 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+        
+        
+        
+        
+        
     </style>
 </head>
 <body>
@@ -1192,65 +1198,68 @@
                     </button>
                 </div>
                 
-                <div class="filter-content" id="filterContent">
-                    <div class="filter-row">
-                        <div class="form-group">
-                            <label for="filterDepartment">Department</label>
-                            <select id="filterDepartment" class="form-control">
-                                <option value="">All Departments</option>
-                                <option value="Civil Engineering">Civil Engineering</option>
-                                <option value="Hydraulic and Water Resource Engineering">Hydraulic and Water Resource Engineering</option>
-                                <option value="Architecture">Architecture</option>
-                                <option value="Chemical Engineering">Chemical Engineering</option>
-                                <option value="Construction Technology and Management">Construction Technology and Management</option>
-                                <option value="Electrical and Computer Engineering">Electrical and Computer Engineering</option>
-                                <option value="Electro-Mechanical Engineering">Electro-Mechanical Engineering</option>
-                                <option value="Surveying Engineering">Surveying Engineering</option>
-                                <option value="Information Systems">Information Systems</option>
-                                <option value="Information Technology">Information Technology</option>
-                                <option value="Mechanical Engineering">Mechanical Engineering</option>
-                                <option value="Software Engineering">Software Engineering</option>
-                                <option value="Biomedical Engineering">Biomedical Engineering</option>
-                                <option value="Mathematics">Mathematics</option>
-                                <option value="Statistics">Statistics</option>
-                                <option value="Physics">Physics</option>
-                                <option value="Chemistry">Chemistry</option>
-                                <option value="Biology">Biology</option>
-                                <option value="Biotechnology">Biotechnology</option>
-                                <option value="Geology">Geology</option>
-                                <option value="Sport Science">Sport Science</option>
-                                <option value="Industrial Chemistry">Industrial Chemistry</option>
-                                <option value="Medicine">Medicine</option>
-                                <option value="Anesthesia">Anesthesia</option>
-                                <option value="Midwifery">Midwifery</option>
-                                <option value="Comprehensive Nursing">Comprehensive Nursing</option>
-                                <option value="Public Health">Public Health</option>
-                                <option value="Health Informatics">Health Informatics</option>
-                                <option value="Medical Laboratory Technology">Medical Laboratory Technology</option>
-                                <option value="Pharmacy">Pharmacy</option>
-                                <option value="Surgical Nursing (Post Basic)">Surgical Nursing (Post Basic)</option>
-                                <option value="Pediatrics & Child Health Nursing (Post Basic)">Pediatrics & Child Health Nursing (Post Basic)</option>
-                                <option value="Dental Medicine">Dental Medicine</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="filterYear">Year</label>
-                            <select id="filterYear" class="form-control">
-                                <option value="">All Years</option>
-                                <option value="Remedial">Remedial</option>
-                                <option value="1st">1st Year</option>
-                                <option value="2nd">2nd Year</option>
-                                <option value="3rd">3rd Year</option>
-                                <option value="4th">4th Year</option>
-                                <option value="5th">5th Year</option>
-                                <option value="6th">6th Year</option>
-                                <option value="7th">7th Year</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button type="button" class="btn" id="applyFilters">Apply Filters</button>
-                    <button type="button" class="btn btn-outline" id="clearFilters" style="margin-left: 10px;">Clear Filters</button>
-                </div>
+                
+<div class="filter-content" id="filterContent">
+    <div class="filter-row">
+        <div class="form-group">
+            <label for="filterDepartment">Department</label>
+            <select id="filterDepartment" class="form-control">
+                <option value="">All Departments</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+                <option value="Hydraulic and Water Resource Engineering">Hydraulic and Water Resource Engineering</option>
+                <option value="Architecture">Architecture</option>
+                <option value="Chemical Engineering">Chemical Engineering</option>
+                <option value="Construction Technology and Management">Construction Technology and Management</option>
+                <option value="Electrical and Computer Engineering">Electrical and Computer Engineering</option>
+                <option value="Electro-Mechanical Engineering">Electro-Mechanical Engineering</option>
+                <option value="Surveying Engineering">Surveying Engineering</option>
+                <option value="Information Systems">Information Systems</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Biomedical Engineering">Biomedical Engineering</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Statistics">Statistics</option>
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Biology">Biology</option>
+                <option value="Biotechnology">Biotechnology</option>
+                <option value="Geology">Geology</option>
+                <option value="Sport Science">Sport Science</option>
+                <option value="Industrial Chemistry">Industrial Chemistry</option>
+                <option value="Medicine">Medicine</option>
+                <option value="Anesthesia">Anesthesia</option>
+                <option value="Midwifery">Midwifery</option>
+                <option value="Comprehensive Nursing">Comprehensive Nursing</option>
+                <option value="Public Health">Public Health</option>
+                <option value="Health Informatics">Health Informatics</option>
+                <option value="Medical Laboratory Technology">Medical Laboratory Technology</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Surgical Nursing (Post Basic)">Surgical Nursing (Post Basic)</option>
+                <option value="Pediatrics & Child Health Nursing (Post Basic)">Pediatrics & Child Health Nursing (Post Basic)</option>
+                <option value="Dental Medicine">Dental Medicine</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="filterYear">Year</label>
+            <select id="filterYear" class="form-control">
+                <option value="">All Years</option>
+                <option value="Remedial">Remedial</option>
+                <option value="1st">1st Year</option>
+                <option value="2nd">2nd Year</option>
+                <option value="3rd">3rd Year</option>
+                <option value="4th">4th Year</option>
+                <option value="5th">5th Year</option>
+                <option value="6th">6th Year</option>
+                <option value="7th">7th Year</option>
+            </select>
+        </div>
+    </div>
+    <button type="button" class="btn" id="applyFilters">Apply Filters</button>
+    <button type="button" class="btn btn-outline" id="clearFilters" style="margin-left: 10px;">Clear Filters</button>
+</div>
+                
+                
 
                 <div class="filter-tags" id="filterTags" style="display: none;">
                     <!-- Active filters will appear here -->
@@ -1381,60 +1390,55 @@
             </div>
         </section>
 
-        <!-- About Us Section -->
-        <section id="about" class="section">
-            <div class="form-container">
-                <h2 class="form-title">About WCU Dating</h2>
-                <p style="text-align: center; margin-bottom: 2rem;">
-                    This site is specially built for WCU students to connect, make friends, and build meaningful relationships.
-                </p>
-                
-                <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: var(--border-radius);">
-                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Developer Information</h3>
-                    <p><strong>Developed by:</strong> Yoseph Abebe Ersedo</p>
-                    <p><strong>University:</strong> Wachemo University</p>
-                    <p><strong>Department:</strong> Information Systems</p>
-                    <p><strong>Year:</strong> 2025</p>
-                    <p><strong>Email:</strong> jossyabebe92@gmail.com</p>
-                </div>
-                
-                
-                
-                
-                
-                
-                
-                
-<div style="margin-top: 2rem;">
-    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Contact Us</h3>
-    <p>Have questions or concerns? Feel free to reach out to us:</p>
-    <p><strong>Phone:</strong> 09-17-33-21-99</p>
-    <p><strong>Email:</strong> <a href="mailto:jossyabebe92@gmail.com" style="color: var(--primary-color);">jossyabebe92@gmail.com</a></p>
-</div>
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                <div style="margin-top: 2rem;">
-                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Mission</h3>
-                    <p>Our mission is to provide a safe and secure platform for Wachemo University students to connect with each other, form study groups, make new friends, and build meaningful relationships within the university community.</p>
-                    
-                    <h3 style="color: var(--primary-color); margin-bottom: 1rem; margin-top: 1.5rem;">Privacy & Safety</h3>
-                    <p>We prioritize your privacy and safety. All profiles are verified through WCU student IDs, and we have strict guidelines against inappropriate behavior. Your personal information is never shared with third parties.</p>
-                </div>
-            </div>
-        </section>
+
+
+
+
+
+
+<!-- About Us Section -->
+<section id="about" class="section">
+    <div class="form-container">
+        <h2 class="form-title">About WCU Dating</h2>
+        <p style="text-align: center; margin-bottom: 2rem;">
+            This site is specially built for WCU students to connect, make friends, and build meaningful relationships.
+        </p>
+        
+        <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: var(--border-radius);">
+            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Developer Information</h3>
+            <p><strong>Developed by:</strong> Yoseph Abebe Ersedo</p>
+            <p><strong>University:</strong> Wachemo University</p>
+            <p><strong>Department:</strong> Information Systems</p>
+            <p><strong>Year:</strong> 2025</p>
+            <p><strong>Email:</strong> jossyabebe92@gmail.com</p>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Contact Us</h3>
+            <p>Have questions or concerns? Feel free to reach out to us:</p>
+            <p><strong>Phone:</strong> 09-17-33-21-99</p>
+            <p><strong>Email:</strong> <a href="mailto:jossyabebe92@gmail.com" style="color: var(--primary-color);">jossyabebe92@gmail.com</a></p>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Mission</h3>
+            <p>Our mission is to provide a safe and secure platform for Wachemo University students to connect with each other, form study groups, make new friends, and build meaningful relationships within the university community.</p>
+            
+            <h3 style="color: var(--primary-color); margin-bottom: 1rem; margin-top: 1.5rem;">Privacy & Safety</h3>
+            <p>We prioritize your privacy and safety. All profiles are verified through WCU student IDs, and we have strict guidelines against inappropriate behavior. Your personal information is never shared with third parties.</p>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+        
     </main>
 
     <!-- Footer -->
@@ -1446,28 +1450,16 @@
     </footer>
 
     <script>
-        
-        
-        
-        
-        
-// Firebase configuration - Replace with your own config
-const firebaseConfig = {
-    apiKey: "AIzaSyB59sLUXNafCd7AHhT1-t9ex7ow9fRr4rQ",
-    authDomain: "wcu-dating-5decd.firebaseapp.com",
-    projectId: "wcu-dating-5decd",
-    storageBucket: "wcu-dating-5decd.appspot.com", // CHANGED THIS LINE
-    messagingSenderId: "240008579483",
-    appId: "1:240008579483:web:ec969a34a8b41b22c3393e",
-    measurementId: "G-T4EHB92656"
-};
-        
-        
-        
-        
-        
-        
-        
+        // Firebase configuration - Replace with your own config
+        const firebaseConfig = {
+            apiKey: "AIzaSyB59sLUXNafCd7AHhT1-t9ex7ow9fRr4rQ",
+            authDomain: "wcu-dating-5decd.firebaseapp.com",
+            projectId: "wcu-dating-5decd",
+            storageBucket: "wcu-dating-5decd.firebasestorage.app",
+            messagingSenderId: "240008579483",
+            appId: "1:240008579483:web:ec969a34a8b41b22c3393e",
+            measurementId: "G-T4EHB92656"
+        };
         
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -1494,7 +1486,7 @@ const firebaseConfig = {
                 
                 const sectionId = this.getAttribute('data-section');
                 showSection(sectionId);
-                updateActiveNav(sectionId);
+                updateActiveNav(this);
                 
                 // Close mobile menu after selection
                 if (window.innerWidth <= 768) {
@@ -1534,57 +1526,42 @@ const firebaseConfig = {
         }
         
         // Update active navigation link
-        function updateActiveNav(sectionId) {
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('data-section') === sectionId) {
-                    link.classList.add('active');
-                }
-            });
-        }
-
         
-
-
-// Load user profile from Firestore with retry logic
-async function loadUserProfile(uid, retries = 3) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            const userDoc = await db.collection('users').doc(uid).get();
-            if (userDoc.exists) {
-                console.log("Profile found for user:", uid);
-                return userDoc.data();
-            }
-            console.log("No profile found for user:", uid);
-            
-            // Wait before retrying
-            if (i < retries - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-        } catch (error) {
-            console.error(`Error loading user profile (attempt ${i + 1}):`, error);
-            // Wait before retrying
-            if (i < retries - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-        }
-    }
-    return null;
+// Update active navigation link
+function updateActiveNav(activeLink) {
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+    });
+    activeLink.classList.add('active');
 }
 
-        
-        
-        
-        // Show notification
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+// Add this function to load user profile from Firestore
+async function loadUserProfile(uid) {
+    try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists) {
+            userProfile = userDoc.data();
+            return userProfile;
         }
+        return null;
+    } catch (error) {
+        console.error('Error loading user profile:', error);
+        return null;
+    }
+}
+
+// Show notification
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.className = `notification ${type} show`;
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+        
+        
         
         // Toggle loading state for buttons
         function toggleButtonLoading(buttonId, isLoading) {
@@ -1600,293 +1577,268 @@ async function loadUserProfile(uid, retries = 3) {
             }
         }
         
-        
-        
-        
-        
-        
-        
-// Handle login functionality
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    // Simple validation
-    if (!email || !password) {
-        showNotification('Please fill in all fields', 'error');
-        return;
-    }
-    
-    toggleButtonLoading('login', true);
-    
-    try {
-        // Sign in with Firebase Authentication
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        currentUser = userCredential.user;
-        
-        // Add delay to ensure profile is available
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Get user profile
-        userProfile = await loadUserProfile(currentUser.uid);
-        
-        if (userProfile) {
-            showNotification('Login successful!', 'success');
+        // Handle login functionality
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Update user online status
-            await db.collection('users').doc(currentUser.uid).update({
-                isOnline: true,
-                lastSeen: new Date()
-            });
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
-            // Update navigation
-            updateNavigation(true);
-            
-            // Show dashboard
-            showSection('dashboard');
-            updateActiveNav('dashboard');
-        } else {
-            // If profile doesn't exist, sign out
-            await auth.signOut();
-            currentUser = null;
-            showNotification('User profile not found. Please sign up first.', 'error');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        
-        // Specific error messages
-        if (error.code === 'auth/user-not-found') {
-            showNotification('No account found with this email. Please sign up first.', 'error');
-        } else if (error.code === 'auth/wrong-password') {
-            showNotification('Incorrect password. Please try again.', 'error');
-        } else if (error.code === 'auth/invalid-email') {
-            showNotification('Invalid email format. Please check your email.', 'error');
-        } else {
-            showNotification(error.message, 'error');
-        }
-    } finally {
-        toggleButtonLoading('login', false);
-    }
-});
-
-        
-        
-        
-        
-        
-        
-
-        
-// Handle signup functionality
-document.getElementById('signupForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // Get all form values FIRST, before any async operations
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const fullName = document.getElementById('fullName').value;
-    const studentId = document.getElementById('studentId').value;
-    const department = document.getElementById('department').value;
-    const year = document.getElementById('year').value;
-    const gender = document.getElementById('gender').value;
-    const lookingFor = document.getElementById('lookingFor').value;
-    const maritalStatus = document.getElementById('maritalStatus').value;
-    const relationshipExp = document.getElementById('relationshipExp').value;
-    const religion = document.getElementById('religion').value;
-    const personality = document.getElementById('personality').value;
-    const interests = document.getElementById('interests').value;
-    const bio = document.getElementById('bio').value;
-    const phone = document.getElementById('phone').value;
-    const profilePhoto = document.getElementById('profilePhoto').files[0];
-    
-    // Validation
-    if (password !== confirmPassword) {
-        showNotification('Passwords do not match', 'error');
-        return;
-    }
-    
-    toggleButtonLoading('signup', true);
-    
-    try {
-        // Create user with Firebase Authentication
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        currentUser = userCredential.user;
-        
-        let photoURL = null;
-        // Upload profile photo if selected
-        if (profilePhoto) {
-            try {
-                const storageRef = storage.ref();
-                const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-                await photoRef.put(profilePhoto);
-                photoURL = await photoRef.getDownloadURL();
-            } catch (photoError) {
-                console.error('Profile photo upload failed:', photoError);
-                showNotification('Profile photo upload failed, but account was created', 'warning');
+            // Simple validation
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
             }
-        }
-        
-        // Create user profile in Firestore
-        const userProfileData = {
-            uid: currentUser.uid,
-            email: email,
-            fullName: fullName,
-            studentId: studentId,
-            department: department,
-            year: year,
-            gender: gender,
-            lookingFor: lookingFor,
-            maritalStatus: maritalStatus,
-            relationshipExp: relationshipExp,
-            religion: religion,
-            personality: personality,
-            interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
-            bio: bio,
-            phone: phone || '',
-            photoURL: photoURL,
-            isOnline: true,
-            lastSeen: new Date(),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        // Create profile in Firestore
-        await db.collection('users').doc(currentUser.uid).set(userProfileData);
-        
-        // Wait a moment for Firestore to complete the write
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Verify the profile was actually saved
-        const savedProfile = await loadUserProfile(currentUser.uid);
-        
-        if (savedProfile) {
-            userProfile = savedProfile;
-            showNotification('Registration successful!', 'success');
             
-            // Update navigation
-            updateNavigation(true);
-            
-            // Show dashboard
-            showSection('dashboard');
-            updateActiveNav('dashboard');
-        } else {
-            // If profile wasn't saved, try to reload it
-            showNotification('Profile created! Loading your dashboard...', 'info');
-            
-            // Additional retry with delay
-            setTimeout(async () => {
-                const retryProfile = await loadUserProfile(currentUser.uid);
-                if (retryProfile) {
-                    userProfile = retryProfile;
-                    updateNavigation(true);
-                    showSection('dashboard');
-                    updateActiveNav('dashboard');
-                } else {
-                    showNotification('Please login manually with your new account', 'info');
-                    await auth.signOut();
-                    currentUser = null;
-                    updateNavigation(false);
-                    showSection('login');
-                }
-            }, 2000);
-        }
-        
-    } catch (error) {
-        console.error('Signup error:', error);
-        
-        // Better error messages
-        if (error.code === 'auth/email-already-in-use') {
-            showNotification('This email is already registered. Please login instead.', 'error');
-        } else if (error.code === 'auth/weak-password') {
-            showNotification('Password is too weak. Please use a stronger password.', 'error');
-        } else if (error.code === 'auth/invalid-email') {
-            showNotification('Invalid email format. Please check your email.', 'error');
-        } else {
-            showNotification(error.message, 'error');
-        }
-        
-        // Delete user if profile creation failed
-        if (currentUser) {
-            try {
-                await currentUser.delete();
-            } catch (deleteError) {
-                console.error('Error deleting user:', deleteError);
-            }
-            currentUser = null;
-        }
-    } finally {
-        toggleButtonLoading('signup', false);
-    }
-});
-        
-        
-        
-
-
-        
-        
-        
-        
-        
-        
-
-        // Load dashboard data
-        async function loadDashboard() {
-            if (!currentUser) return;
+            toggleButtonLoading('login', true);
             
             try {
-                // Make sure we have the latest profile data
-                userProfile = await loadUserProfile(currentUser.uid);
+                // Sign in with Firebase Authentication
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
                 
-                if (userProfile) {
-                    document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName || 'Student'}!`;
-                    document.getElementById('dashboardDetails').textContent = `${userProfile.department || 'Department'}, ${userProfile.year || 'Year'}`;
-                    document.getElementById('dashboardBio').textContent = `"${userProfile.bio || 'No bio yet.'}"`;
-                    
-                    // Load profile image if available
-                    if (userProfile.photoURL) {
-                        document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
-                        document.getElementById('dashboardProfileImg').style.display = 'block';
-                        document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
-                    } else {
-                        document.getElementById('dashboardProfileImg').style.display = 'none';
-                        document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
-                    }
-                } else {
-                    // If profile doesn't exist yet, show generic message
-                    document.getElementById('dashboardWelcome').textContent = 'Welcome, Student!';
-                    document.getElementById('dashboardDetails').textContent = 'Department, Year';
-                    document.getElementById('dashboardBio').textContent = '"Complete your profile to get started."';
-                }
+                // Get user profile from Firestore
+                
+
+
+           
+// Get user profile using the new function
+userProfile = await loadUserProfile(currentUser.uid);
+
+if (userProfile) {
+    showNotification('Login successful!', 'success');
+    
+    // Update user online status
+    await db.collection('users').doc(currentUser.uid).update({
+        isOnline: true,
+        lastSeen: new Date()
+    });
+    
+setupMessageListeners();
+    
+    // Update navigation
+    updateNavigation(true);
+    
+    // Show dashboard
+    showSection('dashboard');
+    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+} else {
+    // If profile doesn't exist, create a basic one
+    showNotification('Creating your profile...', 'warning');
+    
+    const userProfileData = {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        fullName: currentUser.displayName || "New User",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        isOnline: true,
+        lastSeen: new Date()
+    };
+    
+    await db.collection('users').doc(currentUser.uid).set(userProfileData);
+    userProfile = userProfileData;
+    
+    showNotification('Profile created successfully!', 'success');
+    
+    // Update navigation
+    updateNavigation(true);
+    
+    // Show dashboard
+    showSection('dashboard');
+    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+}
+           
+                
+                
+                
+                
             } catch (error) {
-                console.error('Error loading dashboard:', error);
-                document.getElementById('dashboardWelcome').textContent = 'Welcome!';
-                document.getElementById('dashboardDetails').textContent = 'Error loading profile';
-                document.getElementById('dashboardBio').textContent = '"Please try refreshing the page."';
+                console.error('Login error:', error);
+                showNotification(error.message, 'error');
+            } finally {
+                toggleButtonLoading('login', false);
             }
-        }
-
-        // Load students for browsing with filters
-        async function loadStudents() {
-            const studentsContainer = document.getElementById('studentsContainer');
-            studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
+        });
+        
+        // Handle signup functionality
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            try {
-                let query = db.collection('users').where('uid', '!=', currentUser.uid);
-                
-                // Apply filters if any
-                if (activeFilters.department) {
-                    query = query.where('department', '==', activeFilters.department);
-                }
-                
-                if (activeFilters.year) {
-                    query = query.where('year', '==', activeFilters.year);
-                }
-                
-                const usersSnapshot = await query.get();
+            // Get form values
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const fullName = document.getElementById('fullName').value;
+            const studentId = document.getElementById('studentId').value;
+            const department = document.getElementById('department').value;
+            const year = document.getElementById('year').value;
+            const gender = document.getElementById('gender').value;
+            const lookingFor = document.getElementById('lookingFor').value;
+            const maritalStatus = document.getElementById('maritalStatus').value;
+            const relationshipExp = document.getElementById('relationshipExp').value;
+            const religion = document.getElementById('religion').value;
+            const personality = document.getElementById('personality').value;
+            const interests = document.getElementById('interests').value;
+            const bio = document.getElementById('bio').value;
+            const phone = document.getElementById('phone').value;
+            const profilePhoto = document.getElementById('profilePhoto').files[0];
+            
+            // Validation
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            
+            toggleButtonLoading('signup', true);
+            
+            
+try {
+    // Create user with Firebase Authentication
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    currentUser = userCredential.user;
+    
+    console.log('User created in Authentication:', currentUser.uid);
+    
+    let photoURL = null;
+    // Upload profile photo if selected
+    if (profilePhoto) {
+        console.log('Uploading profile photo...');
+        try {
+            const storageRef = storage.ref();
+            const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+            await photoRef.put(profilePhoto);
+            photoURL = await photoRef.getDownloadURL();
+            console.log('Profile photo uploaded:', photoURL);
+        } catch (photoError) {
+            console.error('Profile photo upload failed:', photoError);
+            showNotification('Profile photo upload failed, but account was created', 'warning');
+        }
+    }
+    
+    // Create user profile in Firestore
+    const userProfileData = {
+        uid: currentUser.uid,
+        email: email,
+        fullName: fullName,
+        studentId: studentId,
+        department: department,
+        year: year,
+        gender: gender,
+        lookingFor: lookingFor,
+        maritalStatus: maritalStatus,
+        relationshipExp: relationshipExp,
+        religion: religion,
+        personality: personality,
+        interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
+        bio: bio,
+        phone: phone || '',
+        photoURL: photoURL,
+        isOnline: true,
+        lastSeen: new Date(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    
+await db.collection('users').doc(currentUser.uid).set(userProfileData);
+    
+    
+    console.log('Creating user profile in Firestore:', userProfileData);
+    
+    // CREATE PROFILE IN FIRESTORE
+    await db.collection('users').doc(currentUser.uid).set(userProfileData);
+    
+    console.log('User profile created successfully in Firestore');
+    
+
+    
+// Load the profile to verify it was created
+userProfile = await loadUserProfile(currentUser.uid);
+
+if (userProfile) {
+    showNotification('Registration successful!', 'success');
+    
+    // Load dashboard first to ensure data is available
+    if (typeof loadDashboard === 'function') {
+        loadDashboard();
+    }
+    
+    // Update navigation (this should happen after data is loaded)
+    updateNavigation(true);
+    
+    // Show dashboard
+    showSection('dashboard');
+    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+} else {
+    throw new Error('Failed to create user profile');
+}
+    
+    
+    
+    
+} catch (error) {
+    console.error('Signup error:', error);
+    showNotification(error.message, 'error');
+    
+    // Delete user if profile creation failed
+    if (currentUser) {
+        try {
+            await currentUser.delete();
+            console.log('User deleted from Authentication due to profile creation failure');
+        } catch (deleteError) {
+            console.error('Error deleting user:', deleteError);
+        }
+        currentUser = null;
+    }
+
+
+} finally {
+toggleButtonLoading('signup', false);
+}
+
+}); // ← This should be the closing of the signup event handler
+
+// Load dashboard data - MOVE THIS FUNCTION HERE
+async function loadDashboard() {
+if (!currentUser || !userProfile) return;
+
+document.getElementById('dashboardWelcome').textContent = `Welcome, ${userProfile.fullName}!`;
+document.getElementById('dashboardDetails').textContent = `${userProfile.department}, ${userProfile.year}`;
+document.getElementById('dashboardBio').textContent = `"${userProfile.bio}"`;
+
+// Load profile image if available
+if (userProfile.photoURL) {
+document.getElementById('dashboardProfileImg').src = userProfile.photoURL;
+document.getElementById('dashboardProfileImg').style.display = 'block';
+document.getElementById('dashboardProfilePlaceholder').style.display = 'none';
+} else {
+document.getElementById('dashboardProfileImg').style.display = 'none';
+document.getElementById('dashboardProfilePlaceholder').style.display = 'flex';
+}
+}
+
+
+// Load students for browsing with filters
+async function loadStudents() {
+const studentsContainer = document.getElementById('studentsContainer');
+studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
+
+try {
+let query = db.collection('users').where('uid', '!=', currentUser.uid);
+
+// Apply filters if any - FIXED VERSION
+if (activeFilters.department) {
+query = query.where('department', '==', activeFilters.department);
+}
+
+if (activeFilters.year) {
+query = query.where('year', '==', activeFilters.year);
+}
+
+const usersSnapshot = await query.get();
+
+
+
                 studentsContainer.innerHTML = '';
                 
                 if (usersSnapshot.empty) {
@@ -1935,26 +1887,19 @@ document.getElementById('signupForm').addEventListener('submit', async function(
                             </div>
                             ${interestTags ? `<div class="student-interests">${interestTags}</div>` : ''}
                             <button class="btn" style="width: 100%;" onclick="startConversation('${student.uid}')">Send Message</button>
-                            
-                      
-                      
-                      
-                      
-                      
+                          
+                          
+                          
 <button class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="viewUserProfile('${student.uid}')">View Profile</button>
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
+                            
                             
                             
                         </div>
                     `;
-                    
+                  
+                  
+            
+                 
                     studentsContainer.appendChild(studentCard);
                 });
             } catch (error) {
@@ -1964,108 +1909,146 @@ document.getElementById('signupForm').addEventListener('submit', async function(
         }
         
         // Load user profile
-        async function loadProfile() {
-            if (!currentUser) return;
+        function loadProfile() {
+            if (!currentUser || !userProfile) return;
             
-            try {
-                // Make sure we have the latest profile data
-                userProfile = await loadUserProfile(currentUser.uid);
-                
-                if (userProfile) {
-                    document.getElementById('profileName').value = userProfile.fullName || '';
-                    document.getElementById('profileStudentId').value = userProfile.studentId || '';
-                    document.getElementById('profileDepartment').value = userProfile.department || '';
-                    document.getElementById('profileYear').value = userProfile.year || '';
-                    document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
-                    document.getElementById('profileBio').value = userProfile.bio || '';
-                    
-                    // Load profile image if available
-                    if (userProfile.photoURL) {
-                        document.getElementById('profilePhotoPreview').src = userProfile.photoURL;
-                        document.getElementById('profilePhotoPreview').style.display = 'block';
-                        document.getElementById('profilePhotoPlaceholder').style.display = 'none';
-                    } else {
-                        document.getElementById('profilePhotoPreview').style.display = 'none';
-                        document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
-                    }
-                } else {
-                    showNotification('Could not load profile data', 'error');
-                }
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                showNotification('Error loading profile', 'error');
+            document.getElementById('profileName').value = userProfile.fullName;
+            document.getElementById('profileStudentId').value = userProfile.studentId;
+            document.getElementById('profileDepartment').value = userProfile.department;
+            document.getElementById('profileYear').value = userProfile.year;
+            document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
+            document.getElementById('profileBio').value = userProfile.bio;
+            
+            // Load profile image if available
+            if (userProfile.photoURL) {
+                document.getElementById('profilePhotoPreview').src = userProfile.photoURL;
+                document.getElementById('profilePhotoPreview').style.display = 'block';
+                document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('profilePhotoPreview').style.display = 'none';
+                document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
             }
         }
         
-        // Update profile
-        document.getElementById('profileForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!currentUser) return;
-            
-            const fullName = document.getElementById('profileName').value;
-            const department = document.getElementById('profileDepartment').value;
-            const year = document.getElementById('profileYear').value;
-            const interests = document.getElementById('profileInterests').value;
-            const bio = document.getElementById('profileBio').value;
-            const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
-            
-            toggleButtonLoading('updateProfile', true);
-            
-            try {
-                let updates = {
-                    fullName: fullName,
-                    department: department,
-                    year: year,
-                    interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
-                    bio: bio,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // Upload new profile photo if selected
-                if (profilePhoto) {
-                    // Check file size (max 2MB)
-                    if (profilePhoto.size > 2 * 1024 * 1024) {
-                        showNotification('Please select an image smaller than 2MB', 'error');
-                        toggleButtonLoading('updateProfile', false);
-                        return;
-                    }
-                    
-                    try {
-                        const storageRef = storage.ref();
-                        const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-                        const snapshot = await photoRef.put(profilePhoto);
-                        const downloadURL = await photoRef.getDownloadURL();
-                        updates.photoURL = downloadURL;
-                    } catch (uploadError) {
-                        console.error('Photo upload failed:', uploadError);
-                        showNotification('Photo upload failed', 'error');
-                    }
-                }
-                
-                // Update user profile in Firestore
-                await db.collection('users').doc(currentUser.uid).update(updates);
-                
-                // Refresh the user profile from Firestore to get the latest data
-                userProfile = await loadUserProfile(currentUser.uid);
-                
-                if (userProfile) {
-                    showNotification('Profile updated successfully!', 'success');
-                    
-                    // Reload sections that display profile data
-                    loadDashboard();
-                    loadProfile();
-                } else {
-                    showNotification('Profile update failed', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error updating profile:', error);
-                showNotification(error.message, 'error');
-            } finally {
-                toggleButtonLoading('updateProfile', false);
-            }
-        });
+        
+// Update profile
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!currentUser) return;
+    
+    const fullName = document.getElementById('profileName').value;
+    const department = document.getElementById('profileDepartment').value;
+    const year = document.getElementById('profileYear').value;
+    const interests = document.getElementById('profileInterests').value;
+    const bio = document.getElementById('profileBio').value;
+    const profilePhoto = document.getElementById('profilePhotoUpload').files[0];
+    
+    toggleButtonLoading('updateProfile', true);
+    
+    try {
+        let updates = {
+            fullName: fullName,
+            department: department,
+            year: year,
+            interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
+            bio: bio,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        
+        
+// Upload new profile photo if selected
+if (profilePhoto) {
+    // Check file size (max 2MB)
+    if (profilePhoto.size > 2 * 1024 * 1024) {
+        showNotification('Please select an image smaller than 2MB', 'error');
+        toggleButtonLoading('updateProfile', false);
+        return;
+    }
+    
+    console.log('Uploading profile photo...', profilePhoto);
+    
+    try {
+        const storageRef = storage.ref();
+        const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+        
+        console.log('Storage reference created');
+        
+        // Simple upload with detailed error handling
+        const snapshot = await photoRef.put(profilePhoto);
+        console.log('Upload completed, snapshot:', snapshot);
+        
+        // Get download URL
+        const downloadURL = await photoRef.getDownloadURL();
+        console.log('Download URL obtained:', downloadURL);
+        
+        updates.photoURL = downloadURL;
+        console.log('Photo uploaded successfully, URL:', updates.photoURL);
+        
+    } catch (uploadError) {
+        console.error('Photo upload failed with details:', uploadError);
+        console.error('Error code:', uploadError.code);
+        console.error('Error message:', uploadError.message);
+        
+        // Check specific error types
+        if (uploadError.code === 'storage/unauthorized') {
+            showNotification('Photo upload failed: Storage permissions error', 'error');
+        } else if (uploadError.code === 'storage/unknown') {
+            showNotification('Photo upload failed: Network error', 'error');
+        } else {
+            showNotification('Photo upload failed: ' + uploadError.message, 'error');
+        }
+        
+        // Continue with profile update without the photo
+    }
+}
+        
+
+        
+        // Update user profile in Firestore
+        
+// Debug logging
+console.log('Updating profile with data:', updates);
+console.log('Current user UID:', currentUser.uid);
+
+// Update user profile in Firestore
+await db.collection('users').doc(currentUser.uid).update(updates);
+        
+        
+        // Refresh the user profile from Firestore to get the latest data
+        
+        
+// Refresh the user profile from Firestore to get the latest data
+userProfile = await loadUserProfile(currentUser.uid);
+
+if (userProfile) {
+    showNotification('Profile updated successfully!', 'success');
+    
+    // Reload ALL sections that display profile data
+    if (typeof loadDashboard === 'function') {
+        loadDashboard();
+    }
+    if (typeof loadProfile === 'function') {
+        loadProfile();
+    }
+} else {
+    showNotification('Profile update failed', 'error');
+}
+        
+        
+        
+        
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showNotification(error.message, 'error');
+    } finally {
+        toggleButtonLoading('updateProfile', false);
+    }
+});
+        
+        
+        
         
         // Change profile photo button
         document.getElementById('changePhotoBtn').addEventListener('click', function() {
@@ -2253,10 +2236,6 @@ document.getElementById('signupForm').addEventListener('submit', async function(
                     }
                 });
                 
-            
-                
-                
-              
                 // Create new conversation if it doesn't exist
                 if (!conversationId) {
                     const newConversation = {
@@ -2271,7 +2250,7 @@ document.getElementById('signupForm').addEventListener('submit', async function(
                 
                 // Switch to messages section and load the conversation
                 showSection('messages');
-                updateActiveNav('messages');
+                updateActiveNav(document.querySelector('[data-section="messages"]'));
                 loadConversation(conversationId, otherUserId);
                 
             } catch (error) {
@@ -2280,12 +2259,188 @@ document.getElementById('signupForm').addEventListener('submit', async function(
             }
         }
         
+        // Send message
+        document.getElementById('sendMessageBtn').addEventListener('click', async function() {
+            const chatInput = document.getElementById('chatInput');
+            const messageInput = document.getElementById('messageInput');
+            const conversationId = chatInput.dataset.conversationId;
+            const otherUserId = chatInput.dataset.otherUserId;
+            const messageText = messageInput.value.trim();
+            
+            if (!messageText || !conversationId) return;
+            
+            try {
+                // Add message to conversation
+                const messageData = {
+                    text: messageText,
+                    senderId: currentUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .collection('messages')
+                    .add(messageData);
+                
+                // Update conversation last message and timestamp
+                await db.collection('conversations')
+                    .doc(conversationId)
+                    .update({
+                        lastMessage: messageText,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+// Update conversation last message and timestamp
+await db.collection('conversations')
+    .doc(conversationId)
+    .update({
+        lastMessage: messageText,
+        lastMessageSender: currentUser.uid, // ← ADD THIS LINE
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+                    
+                
+                // Clear input
+                messageInput.value = '';
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Error sending message', 'error');
+            }
+        });
         
+        // Allow sending message with Enter key
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('sendMessageBtn').click();
+            }
+        });
         
-        
-        
+       // Filter functionality - ONLY department and year 
+       
+// Filter functionality - ONLY department and year
+
+document.getElementById('applyFilters').addEventListener('click', function() {
+       
+       
+
+    // Get only department and year filter values
+    activeFilters = {
+        department: document.getElementById('filterDepartment').value,
+        year: document.getElementById('filterYear').value
+        // Remove all other filters
+    };
+    
+    // Update filter tags
+    updateFilterTags();
+    
+    // Load students with filters
+    loadStudents();
+});
+       
        
         
+        // Clear filters
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            // Reset filter inputs
+            document.getElementById('filterDepartment').value = '';
+            document.getElementById('filterYear').value = '';
+            document.getElementById('filterGender').value = '';
+            document.getElementById('filterReligion').value = '';
+            document.getElementById('filterPersonality').value = '';
+            document.getElementById('filterLookingFor').value = '';
+            document.getElementById('filterInterests').value = '';
+            document.getElementById('filterMaritalStatus').value = '';
+            
+            // Clear active filters
+            activeFilters = {};
+            
+            // Update filter tags
+            updateFilterTags();
+            
+            // Load all students
+            loadStudents();
+        });
+        
+        // Toggle filter visibility on mobile
+        document.getElementById('filterToggle').addEventListener('click', function() {
+            document.getElementById('filterContent').classList.toggle('show');
+        });
+        
+        // Update filter tags display
+        function updateFilterTags() {
+            const filterTags = document.getElementById('filterTags');
+            filterTags.innerHTML = '';
+            
+            let hasActiveFilters = false;
+            
+            for (const [key, value] of Object.entries(activeFilters)) {
+                if (value) {
+                    hasActiveFilters = true;
+                    const tag = document.createElement('div');
+                    tag.className = 'filter-tag';
+                    tag.innerHTML = `
+                        ${key}: ${value}
+                        <button type="button" onclick="removeFilter('${key}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    filterTags.appendChild(tag);
+                }
+            }
+            
+            filterTags.style.display = hasActiveFilters ? 'flex' : 'none';
+        }
+        
+        // Remove individual filter
+        function removeFilter(key) {
+            activeFilters[key] = '';
+            document.getElementById(`filter${key.charAt(0).toUpperCase() + key.slice(1)}`).value = '';
+            updateFilterTags();
+            loadStudents();
+        }
+        
+        // Get time ago string
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'Just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes}m ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours}h ago`;
+            } else {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days}d ago`;
+            }
+        }
+        
+        
+        
+        
+// Get time ago string
+function getTimeAgo(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) {
+        return 'Just now';
+    } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes}m ago`;
+    } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours}h ago`;
+    } else {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days}d ago`;
+    }
+}
+
 // View other user's profile
 async function viewUserProfile(userId) {
     try {
@@ -2393,141 +2548,7 @@ async function viewUserProfile(userId) {
         
         
         
-        // Send message
-        document.getElementById('sendMessageBtn').addEventListener('click', async function() {
-            const chatInput = document.getElementById('chatInput');
-            const messageInput = document.getElementById('messageInput');
-            const conversationId = chatInput.dataset.conversationId;
-            const otherUserId = chatInput.dataset.otherUserId;
-            const messageText = messageInput.value.trim();
-            
-            if (!messageText || !conversationId) return;
-            
-            try {
-                // Add message to conversation
-                const messageData = {
-                    text: messageText,
-                    senderId: currentUser.uid,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                await db.collection('conversations')
-                    .doc(conversationId)
-                    .collection('messages')
-                    .add(messageData);
-                
-                // Update conversation last message and timestamp
-                await db.collection('conversations')
-                    .doc(conversationId)
-                    .update({
-                        lastMessage: messageText,
-                        lastMessageSender: currentUser.uid,
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                
-                // Clear input
-                messageInput.value = '';
-                
-            } catch (error) {
-                console.error('Error sending message:', error);
-                showNotification('Error sending message', 'error');
-            }
-        });
         
-        // Allow sending message with Enter key
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('sendMessageBtn').click();
-            }
-        });
-        
-        // Filter functionality
-        document.getElementById('applyFilters').addEventListener('click', function() {
-            // Get filter values
-            activeFilters = {
-                department: document.getElementById('filterDepartment').value,
-                year: document.getElementById('filterYear').value
-            };
-            
-            // Update filter tags
-            updateFilterTags();
-            
-            // Load students with filters
-            loadStudents();
-        });
-        
-        // Clear filters
-        document.getElementById('clearFilters').addEventListener('click', function() {
-            // Reset filter inputs
-            document.getElementById('filterDepartment').value = '';
-            document.getElementById('filterYear').value = '';
-            
-            // Clear active filters
-            activeFilters = {};
-            
-            // Update filter tags
-            updateFilterTags();
-            
-            // Load all students
-            loadStudents();
-        });
-        
-        // Toggle filter visibility on mobile
-        document.getElementById('filterToggle').addEventListener('click', function() {
-            document.getElementById('filterContent').classList.toggle('show');
-        });
-        
-        // Update filter tags display
-        function updateFilterTags() {
-            const filterTags = document.getElementById('filterTags');
-            filterTags.innerHTML = '';
-            
-            let hasActiveFilters = false;
-            
-            for (const [key, value] of Object.entries(activeFilters)) {
-                if (value) {
-                    hasActiveFilters = true;
-                    const tag = document.createElement('div');
-                    tag.className = 'filter-tag';
-                    tag.innerHTML = `
-                        ${key}: ${value}
-                        <button type="button" onclick="removeFilter('${key}')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    filterTags.appendChild(tag);
-                }
-            }
-            
-            filterTags.style.display = hasActiveFilters ? 'flex' : 'none';
-        }
-        
-        // Remove individual filter
-        function removeFilter(key) {
-            activeFilters[key] = '';
-            document.getElementById(`filter${key.charAt(0).toUpperCase() + key.slice(1)}`).value = '';
-            updateFilterTags();
-            loadStudents();
-        }
-        
-        // Get time ago string
-        function getTimeAgo(date) {
-            const now = new Date();
-            const diffInSeconds = Math.floor((now - date) / 1000);
-            
-            if (diffInSeconds < 60) {
-                return 'Just now';
-            } else if (diffInSeconds < 3600) {
-                const minutes = Math.floor(diffInSeconds / 60);
-                return `${minutes}m ago`;
-            } else if (diffInSeconds < 86400) {
-                const hours = Math.floor(diffInSeconds / 3600);
-                return `${hours}h ago`;
-            } else {
-                const days = Math.floor(diffInSeconds / 86400);
-                return `${days}d ago`;
-            }
-        }
         
         // Logout functionality
         document.getElementById('logoutBtn').addEventListener('click', async function(e) {
@@ -2540,18 +2561,6 @@ async function viewUserProfile(userId) {
                     unsubscribeChat = null;
                 }
                 
-                // Update user offline status before signing out
-                if (currentUser) {
-                    try {
-                        await db.collection('users').doc(currentUser.uid).update({
-                            isOnline: false,
-                            lastSeen: new Date()
-                        });
-                    } catch (updateError) {
-                        console.error('Error updating offline status:', updateError);
-                    }
-                }
-                
                 await auth.signOut();
                 currentUser = null;
                 userProfile = null;
@@ -2561,7 +2570,7 @@ async function viewUserProfile(userId) {
                 
                 // Show home section
                 showSection('home');
-                updateActiveNav('home');
+                updateActiveNav(document.querySelector('[data-section="home"]'));
                 
                 showNotification('Logged out successfully', 'success');
             } catch (error) {
@@ -2596,7 +2605,7 @@ async function viewUserProfile(userId) {
                 if (sectionId === 'home' && this.id === 'logoutBtn') return; // Handled separately
                 
                 showSection(sectionId);
-                updateActiveNav(sectionId);
+                updateActiveNav(document.querySelector(`[data-section="${sectionId}"]`));
             });
         });
         
@@ -2608,29 +2617,35 @@ async function viewUserProfile(userId) {
                 
                 try {
                     // Get user profile
-                    userProfile = await loadUserProfile(user.uid);
                     
-                    if (userProfile) {
-                        // Update user online status
-                        await db.collection('users').doc(user.uid).update({
-                            isOnline: true,
-                            lastSeen: new Date()
-                        });
-                        
-                        updateNavigation(true);
-                        
-                        // If on auth pages, redirect to dashboard
-                        if (document.getElementById('login').classList.contains('active') ||
-                            document.getElementById('signup').classList.contains('active')) {
-                            showSection('dashboard');
-                            updateActiveNav('dashboard');
-                        }
-                    } else {
-                        // User document doesn't exist, sign out
-                        await auth.signOut();
-                        currentUser = null;
-                        showNotification('User profile not found. Please sign up.', 'error');
-                    }
+                    
+// Load user profile using the new function
+userProfile = await loadUserProfile(user.uid);
+
+if (userProfile) {
+    // Update user online status
+    await db.collection('users').doc(user.uid).update({
+        isOnline: true,
+        lastSeen: new Date()
+    });
+    
+    updateNavigation(true);
+    
+    // If on auth pages, redirect to dashboard
+    if (document.getElementById('login').classList.contains('active') ||
+        document.getElementById('signup').classList.contains('active')) {
+        showSection('dashboard');
+        updateActiveNav(document.querySelector('[data-section="dashboard"]'));
+    }
+} else {
+    // User document doesn't exist, sign out
+    await auth.signOut();
+    currentUser = null;
+    showNotification('User profile not found. Please sign up.', 'error');
+}
+                    
+                    
+                    
                 } catch (error) {
                     console.error('Error getting user profile:', error);
                     await auth.signOut();
@@ -2660,7 +2675,7 @@ async function viewUserProfile(userId) {
                     document.getElementById('messages').classList.contains('active') ||
                     document.getElementById('profile').classList.contains('active')) {
                     showSection('home');
-                    updateActiveNav('home');
+                    updateActiveNav(document.querySelector('[data-section="home"]'));
                 }
             }
         });
@@ -2681,8 +2696,7 @@ async function viewUserProfile(userId) {
         
         // Update user offline status when window loses focus
         window.addEventListener('blur', async () => {
-            // Check if user is still logged in before trying to update status
-            if (currentUser && auth.currentUser) {
+            if (currentUser) {
                 try {
                     await db.collection('users').doc(currentUser.uid).update({
                         isOnline: false,
@@ -2722,42 +2736,114 @@ async function viewUserProfile(userId) {
         
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+// ===== MESSAGE NOTIFICATION SYSTEM =====
+
+// Show message notification
+function showMessageNotification(senderName, messageText) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification success show';
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center;">
+            <i class="fas fa-envelope" style="margin-right: 10px;"></i>
+            <div>
+                <strong>New message from ${senderName}</strong>
+                <p>${messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText}</p>
+            </div>
+        </div>
+    `;
+    
+    // Add click to open messages
+    notification.style.cursor = 'pointer';
+    notification.addEventListener('click', function() {
+        showSection('messages');
+        updateActiveNav(document.querySelector('[data-section="messages"]'));
+    });
+    
+    // Add to notification container
+    const container = document.getElementById('notification');
+    container.parentNode.insertBefore(notification, container.nextSibling);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 5000);
+}
+
+// Listen for new messages in real-time
+function setupMessageListeners() {
+if (!currentUser) return;
+
+console.log('Setting up message listeners for user:', currentUser.uid);
+
+// Listen to all conversations where user is participant
+db.collection('conversations')
+.where('participants', 'array-contains', currentUser.uid)
+.onSnapshot((snapshot) => {
+console.log('Conversation update detected');
+snapshot.docChanges().forEach((change) => {
+console.log('Change type:', change.type);
+if (change.type === 'modified') {
+const conversation = change.doc.data();
+console.log('Modified conversation:', conversation);
+
+// Check if this is a new message (not from current user)
+if (conversation.lastUpdated &&
+conversation.lastMessage &&
+conversation.lastMessageSender !== currentUser.uid) {
+
+console.log('New message from someone else detected');
+// Get sender info
+db.collection('users').doc(conversation.lastMessageSender).get()
+.then((senderDoc) => {
+if (senderDoc.exists) {
+const sender = senderDoc.data();
+console.log('Showing notification from:', sender.fullName);
+showMessageNotification(sender.fullName, conversation.lastMessage);
+}
+});
+}
+}
+});
+});
+}
 
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
 
-
-        
-        
-
-        
-        
-        
-        
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
         
         
         
