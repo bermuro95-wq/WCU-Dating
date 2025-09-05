@@ -2824,11 +2824,687 @@ showMessageNotification(sender.fullName, conversation.lastMessage);
      
      
      
+     // ===== SEARCH FUNCTIONALITY =====
+
+// Add search input to the browse section
+function addSearchFunctionality() {
+    const filtersSection = document.querySelector('.filters');
+    
+    // Create search input
+    const searchHTML = `
+        <div class="form-group" style="margin-bottom: 1rem;">
+            <label for="searchName">Search by Name</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="searchName" class="form-control" placeholder="Enter student name...">
+                <button class="btn" id="searchButton" style="white-space: nowrap;">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Add search to the top of filters
+    filtersSection.insertAdjacentHTML('afterbegin', searchHTML);
+    
+    // Add event listeners
+    document.getElementById('searchButton').addEventListener('click', searchStudents);
+    document.getElementById('searchName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchStudents();
+        }
+    });
+}
+
+// Search students by name
+async function searchStudents() {
+    const searchTerm = document.getElementById('searchName').value.trim().toLowerCase();
+    
+    if (!searchTerm) {
+        showNotification('Please enter a name to search', 'warning');
+        return;
+    }
+    
+    const studentsContainer = document.getElementById('studentsContainer');
+    studentsContainer.innerHTML = '<div class="spinner" id="browseSpinner"></div>';
+    
+    try {
+        let query = db.collection('users').where('uid', '!=', currentUser.uid);
+        
+        // Apply existing filters if any
+        if (activeFilters.department) {
+            query = query.where('department', '==', activeFilters.department);
+        }
+        
+        if (activeFilters.year) {
+            query = query.where('year', '==', activeFilters.year);
+        }
+        
+        const usersSnapshot = await query.get();
+        studentsContainer.innerHTML = '';
+        
+        if (usersSnapshot.empty) {
+            studentsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No students found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let foundStudents = false;
+        
+        usersSnapshot.forEach(doc => {
+            const student = doc.data();
+            
+            // Check if student name matches search term
+            if (student.fullName && student.fullName.toLowerCase().includes(searchTerm)) {
+                foundStudents = true;
+                
+                const studentCard = document.createElement('div');
+                studentCard.className = 'student-card';
+                
+                // Create interest tags
+                let interestTags = '';
+                if (student.interests && student.interests.length > 0) {
+                    student.interests.slice(0, 4).forEach(interest => {
+                        interestTags += `<span class="interest-tag">${interest}</span>`;
+                    });
+                    if (student.interests.length > 4) {
+                        interestTags += `<span class="interest-tag">+${student.interests.length - 4} more</span>`;
+                    }
+                }
+                
+                studentCard.innerHTML = `
+                    <div class="student-img">
+                        ${student.photoURL ? 
+                            `<img src="${student.photoURL}" alt="${student.fullName}" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                            `<i class="fas fa-user"></i>`
+                        }
+                        <div class="student-online" style="display: ${student.isOnline ? 'block' : 'none'}"></div>
+                    </div>
+                    <div class="student-info">
+                        <div class="student-name">
+                            <span>${student.fullName}</span>
+                            <span>${student.year}</span>
+                        </div>
+                        <div class="student-details">
+                            <p><strong>Department:</strong> ${student.department}</p>
+                            <p><strong>Looking for:</strong> ${student.lookingFor}</p>
+                        </div>
+                        ${interestTags ? `<div class="student-interests">${interestTags}</div>` : ''}
+                        <button class="btn" style="width: 100%;" onclick="startConversation('${student.uid}')">Send Message</button>
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 10px;" onclick="viewUserProfile('${student.uid}')">View Profile</button>
+                    </div>
+                `;
+                
+                studentsContainer.appendChild(studentCard);
+            }
+        });
+        
+        if (!foundStudents) {
+            studentsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>No students found</h3>
+                    <p>No students match your search for "${searchTerm}"</p>
+                    <button class="btn" style="margin-top: 1rem;" onclick="clearSearch()">Clear Search</button>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error searching students:', error);
+        studentsContainer.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--error-color);">Error searching students.</p>';
+    }
+}
+
+// Clear search and show all students
+function clearSearch() {
+    document.getElementById('searchName').value = '';
+    loadStudents(); // This will reload all students without search filter
+}
+
+// Clear search when filters are cleared
+document.getElementById('clearFilters').addEventListener('click', function() {
+    document.getElementById('searchName').value = '';
+});
+
+// Initialize search functionality when browse section is loaded
+const originalLoadStudents = loadStudents;
+loadStudents = function() {
+    originalLoadStudents();
+    
+    // Add search functionality if it doesn't exist yet
+    if (!document.getElementById('searchName')) {
+        setTimeout(addSearchFunctionality, 100);
+    }
+};
+
+// Responsive styles for mobile
+const style = document.createElement('style');
+style.textContent = `
+    @media (max-width: 768px) {
+        #searchButton {
+            padding: 0.75rem 1rem;
+        }
+        
+        #searchButton i {
+            margin-right: 0;
+        }
+        
+        #searchButton span {
+            display: none;
+        }
+    }
+`;
+document.head.appendChild(style);
      
      
      
      
      
+     
+     
+     
+     
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     // ===== MESSAGE REQUESTS BAR =====
+
+// Create and manage message requests bar
+function setupMessageRequestsBar() {
+    // Create the requests bar container
+    const requestsBar = document.createElement('div');
+    requestsBar.id = 'messageRequestsBar';
+    requestsBar.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        z-index: 999;
+        padding: 15px;
+        max-width: 350px;
+        border: 2px solid var(--success-color);
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+    `;
+
+    // Create header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+    `;
+    header.innerHTML = `
+        <h4 style="margin: 0; color: var(--primary-color);">
+            <i class="fas fa-envelope" style="color: var(--success-color);"></i>
+            Message Requests
+        </h4>
+        <button id="closeRequestsBar" style="
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        ">&times;</button>
+    `;
+
+    // Create requests list container
+    const requestsList = document.createElement('div');
+    requestsList.id = 'requestsBarList';
+    requestsList.style.cssText = `
+        max-height: 300px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    `;
+
+    // Create footer with view all button
+    const footer = document.createElement('div');
+    footer.style.cssText = `
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    `;
+    footer.innerHTML = `
+        <button class="btn btn-sm" onclick="showAllMessageRequests()" style="width: 100%;">
+            <i class="fas fa-list"></i> View All Requests
+        </button>
+    `;
+
+    // Assemble the bar
+    requestsBar.appendChild(header);
+    requestsBar.appendChild(requestsList);
+    requestsBar.appendChild(footer);
+    document.body.appendChild(requestsBar);
+
+    // Add event listeners
+    document.getElementById('closeRequestsBar').addEventListener('click', hideRequestsBar);
+
+    // Add hover effects
+    requestsBar.addEventListener('mouseenter', function() {
+        this.style.boxShadow = '0 6px 25px rgba(0,0,0,0.2)';
+    });
+
+    requestsBar.addEventListener('mouseleave', function() {
+        this.style.boxShadow = '0 4px 20px rgba(0,0,0,0.15)';
+    });
+
+    // Check for requests on load
+    checkForMessageRequests();
+}
+
+// Check for new message requests
+async function checkForMessageRequests() {
+    if (!currentUser) return;
+
+    try {
+        const requestsSnapshot = await db.collection('messageRequests')
+            .where('receiverId', '==', currentUser.uid)
+            .where('status', '==', 'pending')
+            .orderBy('createdAt', 'desc')
+            .limit(5)
+            .get();
+
+        const requests = [];
+        for (const doc of requestsSnapshot.docs) {
+            const request = doc.data();
+            request.id = doc.id;
+            
+            // Get sender info
+            const senderDoc = await db.collection('users').doc(request.senderId).get();
+            if (senderDoc.exists) {
+                request.sender = senderDoc.data();
+                requests.push(request);
+            }
+        }
+
+        updateRequestsBar(requests);
+    } catch (error) {
+        console.error('Error checking message requests:', error);
+    }
+}
+
+// Update requests bar with new requests
+function updateRequestsBar(requests) {
+    const requestsBar = document.getElementById('messageRequestsBar');
+    const requestsList = document.getElementById('requestsBarList');
+    
+    if (!requestsBar || !requestsList) return;
+
+    requestsList.innerHTML = '';
+
+    if (requests.length === 0) {
+        requestsList.innerHTML = `
+            <div style="text-align: center; color: #666; padding: 10px;">
+                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                <p style="margin: 0;">No message requests</p>
+            </div>
+        `;
+        requestsBar.style.display = 'none';
+        return;
+    }
+
+    requests.forEach(request => {
+        const requestItem = document.createElement('div');
+        requestItem.className = 'request-item';
+        requestItem.style.cssText = `
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 3px solid var(--success-color);
+        `;
+
+        requestItem.innerHTML = `
+            <div style="flex-shrink: 0; margin-right: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); 
+                     display: flex; align-items: center; justify-content: center;">
+                    ${request.sender.photoURL ? 
+                        `<img src="${request.sender.photoURL}" alt="${request.sender.fullName}" 
+                             style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
+                        `<i class="fas fa-user" style="color: var(--primary-color);"></i>`
+                    }
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 500; color: var(--primary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${request.sender.fullName}
+                </div>
+                <div style="font-size: 0.8rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${request.sender.department} • ${request.sender.year}
+                </div>
+            </div>
+            <div style="flex-shrink: 0; margin-left: 10px;">
+                <button class="btn btn-sm" onclick="event.stopPropagation(); acceptMessageRequest('${request.id}', '${request.senderId}')" 
+                        style="padding: 4px 8px; font-size: 0.75rem;">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        `;
+
+        // Click to view profile
+        requestItem.addEventListener('click', () => {
+            viewUserProfile(request.senderId);
+            hideRequestsBar();
+        });
+
+        // Hover effects
+        requestItem.addEventListener('mouseenter', function() {
+            this.style.background = '#e9ecef';
+            this.style.transform = 'translateX(-2px)';
+        });
+
+        requestItem.addEventListener('mouseleave', function() {
+            this.style.background = '#f8f9fa';
+            this.style.transform = 'translateX(0)';
+        });
+
+        requestsList.appendChild(requestItem);
+    });
+
+    // Show the bar
+    requestsBar.style.display = 'flex';
+    
+    // Add notification badge to document title
+    if (requests.length > 0) {
+        document.title = `(${requests.length}) ${originalDocumentTitle}`;
+    }
+}
+
+// Show all message requests in modal
+function showAllMessageRequests() {
+    hideRequestsBar();
+    showMessageRequests(); // This should be your existing modal function
+}
+
+// Hide requests bar
+function hideRequestsBar() {
+    const requestsBar = document.getElementById('messageRequestsBar');
+    if (requestsBar) {
+        requestsBar.style.display = 'none';
+    }
+    document.title = originalDocumentTitle;
+}
+
+// Show requests bar
+function showRequestsBar() {
+    checkForMessageRequests();
+}
+
+// Listen for new message requests in real-time
+function setupRequestsBarListener() {
+    if (!currentUser) return;
+
+    // Listen for new message requests
+    return db.collection('messageRequests')
+        .where('receiverId', '==', currentUser.uid)
+        .where('status', '==', 'pending')
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach(async (change) => {
+                if (change.type === 'added') {
+                    // New request added
+                    const request = change.doc.data();
+                    request.id = change.doc.id;
+                    
+                    // Get sender info
+                    const senderDoc = await db.collection('users').doc(request.senderId).get();
+                    if (senderDoc.exists) {
+                        request.sender = senderDoc.data();
+                        
+                        // Show notification
+                        showNewRequestNotification(request);
+                        
+                        // Update bar
+                        checkForMessageRequests();
+                    }
+                }
+            });
+        });
+}
+
+// Show notification for new message request
+function showNewRequestNotification(request) {
+    const notification = document.createElement('div');
+    notification.className = 'notification success show';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        cursor: pointer;
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); 
+                 display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${request.sender.photoURL ? 
+                    `<img src="${request.sender.photoURL}" alt="${request.sender.fullName}" 
+                         style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">` : 
+                    `<i class="fas fa-user" style="color: var(--primary-color);"></i>`
+                }
+            </div>
+            <div>
+                <strong>New message request</strong>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem;">
+                    ${request.sender.fullName} wants to message you
+                </p>
+            </div>
+        </div>
+    `;
+    
+    notification.addEventListener('click', () => {
+        viewUserProfile(request.senderId);
+        notification.remove();
+    });
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Store original document title
+let originalDocumentTitle = document.title;
+
+// Initialize message requests bar
+function initMessageRequestsBar() {
+    setupMessageRequestsBar();
+    
+    // Set up real-time listener
+    let requestsListener = null;
+    
+    if (currentUser) {
+        requestsListener = setupRequestsBarListener();
+    }
+    
+    // Re-setup when auth state changes
+    const originalAuthStateChanged = auth.onAuthStateChanged;
+    auth.onAuthStateChanged = (user) => {
+        originalAuthStateChanged(user);
+        
+        if (user) {
+            // Clean up previous listener
+            if (requestsListener) {
+                requestsListener();
+            }
+            
+            // Setup new listener
+            setTimeout(() => {
+                requestsListener = setupRequestsBarListener();
+                checkForMessageRequests();
+            }, 1000);
+        } else {
+            if (requestsListener) {
+                requestsListener();
+            }
+            hideRequestsBar();
+        }
+    };
+}
+
+// Add styles for requests bar
+const requestsBarStyles = document.createElement('style');
+requestsBarStyles.textContent = `
+    #messageRequestsBar {
+        animation: slideInUp 0.3s ease;
+    }
+    
+    @keyframes slideInUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    #requestsBarList::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    #requestsBarList::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 2px;
+    }
+    
+    #requestsBarList::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 2px;
+    }
+    
+    #requestsBarList::-webkit-scrollbar-thumb:hover {
+        background: #aaa;
+    }
+    
+    @media (max-width: 768px) {
+        #messageRequestsBar {
+            bottom: 10px;
+            right: 10px;
+            left: 10px;
+            max-width: none;
+        }
+        
+        .request-item {
+            padding: 8px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        #messageRequestsBar {
+            padding: 10px;
+        }
+        
+        .request-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .request-item > div:first-child {
+            margin-right: 0 !important;
+            margin-bottom: 8px;
+        }
+        
+        .request-item > div:last-child {
+            margin-left: 0 !important;
+            margin-top: 8px;
+        }
+    }
+`;
+document.head.appendChild(requestsBarStyles);
+
+// Initialize the requests bar
+setTimeout(initMessageRequestsBar, 2000);
      
      
      
