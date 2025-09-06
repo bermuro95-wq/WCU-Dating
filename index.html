@@ -3520,11 +3520,333 @@ setTimeout(initMessageRequestsBar, 2000);
      
      
      
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+
+   
+     
+
+     
+     
+     
+    
+
+
+
+
+// WCU Student ID Verification System
+document.addEventListener('DOMContentLoaded', function() {
+    // WCU Student ID validation function
+    function isValidWCUStudentId(studentId) {
+        // WCU ID pattern: WCU followed by 7 digits
+        const wcuIdPattern = /^WCU\d{7}$/i;
+        return wcuIdPattern.test(studentId);
+    }
+
+    // Add real-time validation to student ID field
+    const studentIdInput = document.getElementById('studentId');
+    if (studentIdInput) {
+        studentIdInput.addEventListener('blur', validateStudentId);
+        studentIdInput.addEventListener('input', function() {
+            this.style.borderColor = '';
+            const errorElement = document.getElementById('studentIdError');
+            if (errorElement) errorElement.remove();
+        });
+    }
+
+    // Validate student ID function
+    function validateStudentId() {
+        const studentId = studentIdInput.value.trim();
+        const errorElement = document.getElementById('studentIdError') || document.createElement('div');
+        errorElement.id = 'studentIdError';
+        errorElement.style.color = 'var(--error-color)';
+        errorElement.style.fontSize = '0.85rem';
+        errorElement.style.marginTop = '0.25rem';
         
+        // Remove any existing error
+        if (studentIdInput.parentNode.contains(errorElement)) {
+            studentIdInput.parentNode.removeChild(errorElement);
+        }
         
+        if (!studentId) {
+            studentIdInput.style.borderColor = 'var(--error-color)';
+            errorElement.textContent = 'Student ID is required';
+            studentIdInput.parentNode.appendChild(errorElement);
+            return false;
+        }
         
+        if (!isValidWCUStudentId(studentId)) {
+            studentIdInput.style.borderColor = 'var(--error-color)';
+            errorElement.textContent = 'Invalid WCU Student ID format. Example: WCU1600881';
+            studentIdInput.parentNode.appendChild(errorElement);
+            return false;
+        }
         
+        // If valid, show green border
+        studentIdInput.style.borderColor = 'var(--success-color)';
+        return true;
+    }
+
+    // Modify the signup form submission to include ID verification
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validate student ID first
+            if (!validateStudentId()) {
+                showNotification('Please enter a valid WCU Student ID', 'error');
+                return;
+            }
+            
+            // Get the student ID
+            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
+            
+            // Check if this ID is already registered
+            try {
+                const querySnapshot = await db.collection('users')
+                    .where('studentId', '==', studentId)
+                    .get();
+                
+                if (!querySnapshot.empty) {
+                    showNotification('This Student ID is already registered', 'error');
+                    return;
+                }
+                
+                // If ID is valid and not registered, proceed with original signup
+                // but add email verification requirement
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                // Password validation
+                if (password !== confirmPassword) {
+                    showNotification('Passwords do not match', 'error');
+                    return;
+                }
+                
+                toggleButtonLoading('signup', true);
+                
+                try {
+                    // Create user with Firebase Authentication
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    currentUser = userCredential.user;
+                    
+                    // Send email verification
+                    await currentUser.sendEmailVerification();
+                    
+                    // Continue with the rest of the signup process (profile creation)
+                    // ... [rest of your existing signup code]
+                    
+                    // After successful signup, show message about email verification
+                    showNotification('Registration successful! Please check your email to verify your account.', 'success');
+                    
+                } catch (error) {
+                    console.error('Signup error:', error);
+                    showNotification(error.message, 'error');
+                    
+                    // Delete user if profile creation failed
+                    if (currentUser) {
+                        try {
+                            await currentUser.delete();
+                        } catch (deleteError) {
+                            console.error('Error deleting user:', deleteError);
+                        }
+                        currentUser = null;
+                    }
+                } finally {
+                    toggleButtonLoading('signup', false);
+                }
+                
+            } catch (error) {
+                console.error('Error checking student ID:', error);
+                showNotification('Error verifying Student ID. Please try again.', 'error');
+            }
+        });
+    }
+
+    // Add visual indicator for email verification status
+    function updateEmailVerificationStatus() {
+        if (currentUser) {
+            // Check if user email is verified
+            currentUser.reload().then(() => {
+                const emailVerified = currentUser.emailVerified;
+                const profileNav = document.getElementById('profileNav');
+                
+                if (profileNav) {
+                    if (emailVerified) {
+                        // Add verification badge
+                        if (!profileNav.querySelector('.verified-badge')) {
+                            const badge = document.createElement('span');
+                            badge.className = 'verified-badge';
+                            badge.innerHTML = ' <i class="fas fa-check-circle" style="color: var(--success-color);"></i>';
+                            badge.title = 'Email verified';
+                            profileNav.appendChild(badge);
+                        }
+                    } else {
+                        // Add warning for unverified email
+                        if (!profileNav.querySelector('.unverified-warning')) {
+                            const warning = document.createElement('span');
+                            warning.className = 'unverified-warning';
+                            warning.innerHTML = ' <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>';
+                            warning.title = 'Email not verified';
+                            profileNav.appendChild(warning);
+                        }
+                    }
+                }
+            }).catch(error => {
+                console.error('Error reloading user:', error);
+            });
+        }
+    }
+
+    // Check verification status on page load and auth state change
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            // Check email verification status
+            updateEmailVerificationStatus();
+            
+            // Set up a listener for email verification
+            setInterval(updateEmailVerificationStatus, 300000); // Check every 5 minutes
+        }
+    });
+
+    // Add resend verification email functionality to profile page
+    function addResendVerificationButton() {
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm && currentUser && !currentUser.emailVerified) {
+            // Check if button already exists
+            if (!document.getElementById('resendVerificationBtn')) {
+                const resendBtn = document.createElement('button');
+                resendBtn.type = 'button';
+                resendBtn.id = 'resendVerificationBtn';
+                resendBtn.className = 'btn btn-outline';
+                resendBtn.style.marginTop = '1rem';
+                resendBtn.innerHTML = '<i class="fas fa-envelope"></i> Resend Verification Email';
+                resendBtn.addEventListener('click', resendVerificationEmail);
+                
+                profileForm.appendChild(resendBtn);
+            }
+        }
+    }
+
+    // Resend verification email function
+    async function resendVerificationEmail() {
+        if (!currentUser) return;
         
-    </script>
+        try {
+            await currentUser.sendEmailVerification();
+            showNotification('Verification email sent. Please check your inbox.', 'success');
+        } catch (error) {
+            console.error('Error sending verification email:', error);
+            showNotification('Error sending verification email. Please try again later.', 'error');
+        }
+    }
+
+    // Call this function when profile section is loaded
+    const originalLoadProfile = loadProfile;
+    loadProfile = function() {
+        originalLoadProfile();
+        addResendVerificationButton();
+        updateEmailVerificationStatus();
+    };
+
+    // Add styles for verification indicators
+    const style = document.createElement('style');
+    style.textContent = `
+        .verified-badge, .unverified-warning {
+            margin-left: 5px;
+            font-size: 0.9em;
+        }
+        
+        #studentId.verified {
+            border-color: var(--success-color) !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='%234caf50' d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+        
+        #studentId.unverified {
+            border-color: var(--error-color) !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='%23f44336' d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+    `;
+    document.head.appendChild(style);
+});
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+
+  </script>
 </body>
 </html>
