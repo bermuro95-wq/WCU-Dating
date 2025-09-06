@@ -5588,6 +5588,450 @@ document.addEventListener('DOMContentLoaded', function() {
      
      
      
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+
+  // Fixed Instant Photo Upload Functionality
+  (function() {
+    
+    // Enhanced profile photo upload with compression
+    function fixProfilePhotoUpload() {
+      console.log('Setting up instant photo upload...');
+      
+      // Remove existing event listeners
+      const changePhotoBtn = document.getElementById('changePhotoBtn');
+      const photoUpload = document.getElementById('profilePhotoUpload');
+      
+      if (changePhotoBtn) {
+        const newBtn = changePhotoBtn.cloneNode(true);
+        changePhotoBtn.parentNode.replaceChild(newBtn, changePhotoBtn);
+      }
+      
+      if (photoUpload) {
+        const newUpload = photoUpload.cloneNode(true);
+        photoUpload.parentNode.replaceChild(newUpload, photoUpload);
+      }
+      
+      // Get fresh references
+      const freshChangePhotoBtn = document.getElementById('changePhotoBtn');
+      const freshPhotoUpload = document.getElementById('profilePhotoUpload');
+      
+      // Setup change photo button
+      if (freshChangePhotoBtn) {
+        freshChangePhotoBtn.addEventListener('click', function() {
+          freshPhotoUpload.click();
+        });
+      }
+      
+      // Setup instant photo upload on selection
+      if (freshPhotoUpload) {
+        freshPhotoUpload.addEventListener('change', async function(e) {
+          if (e.target.files && e.target.files[0]) {
+            await handlePhotoUpload(e.target.files[0]);
+          }
+        });
+      }
+    }
+    
+    // Handle photo upload with compression
+    async function handlePhotoUpload(file) {
+      if (!file || !file.type.match('image.*')) {
+        showNotification('Please select a valid image file', 'error');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        showNotification('Please select an image smaller than 5MB', 'error');
+        return;
+      }
+      
+      // Show immediate preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        showPhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+      
+      // Compress and upload immediately
+      await compressAndUploadPhoto(file);
+    }
+    
+    // Compress image before upload
+    async function compressAndUploadPhoto(file) {
+      try {
+        // Show uploading state
+        showUploadingState();
+        
+        // Compress image (max width: 800px, quality: 80%)
+        const compressedFile = await compressImage(file, 800, 0.8);
+        
+        console.log('Original size:', file.size, 'Compressed size:', compressedFile.size);
+        
+        // Upload compressed image
+        await uploadProfilePhoto(compressedFile);
+        
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        // Fallback: upload original file
+        await uploadProfilePhoto(file);
+      }
+    }
+    
+    // Compress image using canvas
+    function compressImage(file, maxWidth, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        
+        reader.onload = function(event) {
+          const img = new Image();
+          img.src = event.target.result;
+          
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // Calculate new dimensions
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to compressed blob
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Canvas toBlob failed'));
+                  return;
+                }
+                
+                // Create new file with compressed blob
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now()
+                });
+                
+                resolve(compressedFile);
+              },
+              'image/jpeg',
+              quality
+            );
+          };
+          
+          img.onerror = reject;
+        };
+        
+        reader.onerror = reject;
+      });
+    }
+    
+    // Show photo preview
+    function showPhotoPreview(dataUrl) {
+      const preview = document.getElementById('profilePhotoPreview');
+      const placeholder = document.getElementById('profilePhotoPlaceholder');
+      
+      if (preview) {
+        preview.src = dataUrl;
+        preview.style.display = 'block';
+      }
+      if (placeholder) {
+        placeholder.style.display = 'none';
+      }
+    }
+    
+    // Show uploading state
+    function showUploadingState() {
+      const changePhotoBtn = document.getElementById('changePhotoBtn');
+      if (changePhotoBtn) {
+        changePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+        changePhotoBtn.disabled = true;
+      }
+    }
+    
+    // Reset upload button
+    function resetUploadButton() {
+      const changePhotoBtn = document.getElementById('changePhotoBtn');
+      if (changePhotoBtn) {
+        changePhotoBtn.innerHTML = '<i class="fas fa-camera"></i> Change Photo';
+        changePhotoBtn.disabled = false;
+      }
+    }
+    
+    // Upload profile photo to Firebase
+    async function uploadProfilePhoto(file) {
+      if (!currentUser || !file) return;
+      
+      try {
+        console.log('Starting upload...');
+        
+        // Create storage reference with cache busting
+        const timestamp = Date.now();
+        const storageRef = storage.ref();
+        const photoRef = storageRef.child(`profile_photos/${currentUser.uid}_${timestamp}`);
+        
+        // Upload with progress monitoring (optional)
+        const uploadTask = photoRef.put(file);
+        
+        // Listen for state changes, errors, and completion
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            // Progress monitoring (optional)
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('Upload is ' + progress + '% done');
+          },
+          (error) => {
+            console.error('Upload error:', error);
+            showNotification('Upload failed. Please try again.', 'error');
+            resetUploadButton();
+          },
+          async () => {
+            // Upload completed successfully
+            console.log('Upload complete');
+            
+            // Get download URL
+            const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+            console.log('Download URL:', downloadURL);
+            
+            // Update user profile with new photo URL
+            await db.collection('users').doc(currentUser.uid).update({
+              photoURL: downloadURL,
+              updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Update local user profile
+            if (userProfile) {
+              userProfile.photoURL = downloadURL;
+            }
+            
+            // Update UI everywhere
+            updateAllProfilePhotos(downloadURL);
+            
+            // Show success
+            showNotification('Profile photo updated successfully!', 'success');
+            
+            // Reset button
+            resetUploadButton();
+            
+            // Clear file input
+            const photoUpload = document.getElementById('profilePhotoUpload');
+            if (photoUpload) {
+              photoUpload.value = '';
+            }
+          }
+        );
+        
+      } catch (error) {
+        console.error('Error in upload process:', error);
+        showNotification('Error uploading photo. Please try again.', 'error');
+        resetUploadButton();
+      }
+    }
+    
+    // Update profile photos everywhere in the app
+    function updateAllProfilePhotos(photoURL) {
+      // Update profile page
+      updateProfilePagePhoto(photoURL);
+      
+      // Update dashboard
+      updateDashboardPhoto(photoURL);
+      
+      // Update navigation (if needed)
+      updateNavigationPhoto(photoURL);
+      
+      // Update timeline posts
+      updateTimelinePhotos(photoURL);
+      
+      // Update messages
+      updateMessagesPhotos(photoURL);
+    }
+    
+    // Update profile page photo
+    function updateProfilePagePhoto(photoURL) {
+      const preview = document.getElementById('profilePhotoPreview');
+      const placeholder = document.getElementById('profilePhotoPlaceholder');
+      
+      if (preview && photoURL) {
+        preview.src = photoURL;
+        preview.style.display = 'block';
+      }
+      if (placeholder) {
+        placeholder.style.display = 'none';
+      }
+    }
+    
+    // Update dashboard photo
+    function updateDashboardPhoto(photoURL) {
+      const dashboardImg = document.getElementById('dashboardProfileImg');
+      const dashboardPlaceholder = document.getElementById('dashboardProfilePlaceholder');
+      
+      if (dashboardImg && photoURL) {
+        dashboardImg.src = photoURL;
+        dashboardImg.style.display = 'block';
+      }
+      if (dashboardPlaceholder) {
+        dashboardPlaceholder.style.display = 'none';
+      }
+    }
+    
+    // Update timeline photos
+    function updateTimelinePhotos(photoURL) {
+      const posts = document.querySelectorAll('.post-card');
+      posts.forEach(post => {
+        const authorImg = post.querySelector('.post-author-img');
+        if (authorImg) {
+          const img = authorImg.querySelector('img');
+          if (img && img.src.includes('profile_photos')) {
+            img.src = photoURL;
+          }
+        }
+      });
+    }
+    
+    // Update messages photos (if function exists)
+    function updateMessagesPhotos(photoURL) {
+      if (typeof loadConversations === 'function') {
+        setTimeout(() => {
+          loadConversations();
+        }, 1000);
+      }
+    }
+    
+    // Update navigation photo (if needed)
+    function updateNavigationPhoto(photoURL) {
+      // Add navigation photo update logic if needed
+    }
+    
+    // Add optimized styles for photo upload
+    function addPhotoUploadStyles() {
+      const styles = document.createElement('style');
+      styles.textContent = `
+        /* Optimized photo upload styles */
+        .profile-img-container {
+          position: relative;
+          display: inline-block;
+        }
+        
+        #profilePhotoPreview {
+          transition: all 0.3s ease;
+          border: 3px solid var(--primary-color);
+          box-shadow: 0 4px 15px rgba(106, 27, 154, 0.3);
+        }
+        
+        #changePhotoBtn {
+          transition: all 0.3s ease;
+          margin-top: 1rem;
+          background: var(--primary-light);
+        }
+        
+        #changePhotoBtn:hover {
+          background: var(--primary-color);
+          transform: translateY(-2px);
+        }
+        
+        #changePhotoBtn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        
+        /* Loading animation */
+        .fa-spinner {
+          animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        /* Success animation */
+        @keyframes successPulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        
+        .upload-success {
+          animation: successPulse 0.5s ease;
+        }
+      `;
+      document.head.appendChild(styles);
+    }
+    
+    // Initialize photo upload functionality
+    function initPhotoUpload() {
+      console.log('Initializing instant photo upload...');
+      
+      addPhotoUploadStyles();
+      fixProfilePhotoUpload();
+      
+      // Re-initialize after short delay to ensure everything is loaded
+      setTimeout(fixProfilePhotoUpload, 500);
+    }
+    
+    // Start the instant photo upload system
+    console.log('Starting instant photo upload system...');
+    
+    // Wait for Firebase to be ready
+    const checkFirebase = setInterval(() => {
+      if (typeof storage !== 'undefined' && typeof db !== 'undefined') {
+        clearInterval(checkFirebase);
+        initPhotoUpload();
+      }
+    }, 100);
+    
+  })();
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+  
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
 
   </script>
 </body>
