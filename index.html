@@ -3842,6 +3842,263 @@ document.addEventListener('DOMContentLoaded', function() {
      
      
      
+      
+  // Navigation History Management - Fixed Version
+  (function() {
+    // Navigation history stack
+    let navHistory = [];
+    let currentNavIndex = -1;
+    
+    // DOM elements
+    const backButton = document.getElementById('back-button');
+    const forwardButton = document.getElementById('forward-button');
+    const navButtonsContainer = document.getElementById('navigation-buttons');
+    
+    // Initialize navigation history
+    function initNavigationHistory() {
+      // Get current active section
+      const activeSection = document.querySelector('.section.active');
+      if (activeSection) {
+        const sectionId = activeSection.id;
+        navHistory = [sectionId];
+        currentNavIndex = 0;
+        updateNavigationButtons();
+      }
+    }
+    
+    // Add to navigation history
+    function addToNavHistory(sectionId) {
+      // If we're not at the end of history, remove forward history
+      if (currentNavIndex < navHistory.length - 1) {
+        navHistory = navHistory.slice(0, currentNavIndex + 1);
+      }
+      
+      // Add new section to history
+      navHistory.push(sectionId);
+      currentNavIndex = navHistory.length - 1;
+      
+      // Limit history size to prevent memory issues
+      if (navHistory.length > 20) {
+        navHistory.shift();
+        currentNavIndex--;
+      }
+      
+      updateNavigationButtons();
+    }
+    
+    // Update button states based on navigation history
+    function updateNavigationButtons() {
+      if (!backButton || !forwardButton) return;
+      
+      // Show back button if we can go back
+      if (currentNavIndex > 0) {
+        backButton.style.display = 'flex';
+      } else {
+        backButton.style.display = 'none';
+      }
+      
+      // Show forward button if we can go forward
+      if (currentNavIndex < navHistory.length - 1) {
+        forwardButton.style.display = 'flex';
+      } else {
+        forwardButton.style.display = 'none';
+      }
+    }
+    
+    // Navigate back
+    function navigateBack() {
+      if (currentNavIndex > 0) {
+        currentNavIndex--;
+        const sectionId = navHistory[currentNavIndex];
+        navigateToSection(sectionId, false); // false means don't add to history
+      }
+    }
+    
+    // Navigate forward
+    function navigateForward() {
+      if (currentNavIndex < navHistory.length - 1) {
+        currentNavIndex++;
+        const sectionId = navHistory[currentNavIndex];
+        navigateToSection(sectionId, false); // false means don't add to history
+      }
+    }
+    
+    // Navigate to section (compatible with existing showSection function)
+    function navigateToSection(sectionId, addToHistory = true) {
+      // Use the existing showSection function
+      if (typeof showSection === 'function') {
+        showSection(sectionId);
+        
+        // Add to history if requested
+        if (addToHistory && sectionId !== navHistory[currentNavIndex]) {
+          addToNavHistory(sectionId);
+        }
+      }
+    }
+    
+    // Setup navigation tracking without overriding existing functions
+    function setupNavigationTracking() {
+      // Track nav link clicks
+      const navLinks = document.querySelectorAll('.nav-link');
+      navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          const sectionId = this.getAttribute('data-section');
+          if (sectionId) {
+            addToNavHistory(sectionId);
+          }
+        });
+      });
+      
+      // Track dashboard card clicks
+      const dashboardCards = document.querySelectorAll('.dashboard-cards .card.nav-link');
+      dashboardCards.forEach(card => {
+        card.addEventListener('click', function() {
+          const sectionId = this.getAttribute('data-section');
+          if (sectionId && sectionId !== 'home') {
+            addToNavHistory(sectionId);
+          }
+        });
+      });
+    }
+    
+    // Add keyboard shortcuts for navigation
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', function(e) {
+        // Alt+Left Arrow for back
+        if (e.altKey && e.key === 'ArrowLeft') {
+          e.preventDefault();
+          navigateBack();
+        }
+        
+        // Alt+Right Arrow for forward
+        if (e.altKey && e.key === 'ArrowRight') {
+          e.preventDefault();
+          navigateForward();
+        }
+      });
+    }
+    
+    // Initialize everything
+    function initNavigationSystem() {
+      // Create navigation buttons if they don't exist
+      if (!document.getElementById('navigation-buttons')) {
+        const navButtonsHTML = `
+          <div id="navigation-buttons" style="position: fixed; bottom: 20px; left: 20px; z-index: 999; display: flex; gap: 10px;">
+            <button id="back-button" class="nav-btn" style="display: none; padding: 12px 20px; background: var(--primary-color); color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: 500; box-shadow: var(--shadow); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button id="forward-button" class="nav-btn" style="display: none; padding: 12px 20px; background: var(--primary-color); color: white; border: none; border-radius: 50px; cursor: pointer; font-weight: 500; box-shadow: var(--shadow); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;">
+              Forward <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+          
+          <style>
+            .nav-btn:hover {
+              background: var(--primary-dark);
+              transform: translateY(-2px);
+              box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .nav-btn:active {
+              transform: translateY(0);
+            }
+            
+            @media (max-width: 768px) {
+              #navigation-buttons {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                justify-content: center;
+              }
+              
+              .nav-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+              }
+              
+              .nav-btn span.text {
+                display: none;
+              }
+              
+              .nav-btn i {
+                margin: 0;
+                font-size: 16px;
+              }
+            }
+            
+            @media (max-width: 480px) {
+              #navigation-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+              }
+              
+              .nav-btn {
+                width: 100%;
+                justify-content: center;
+              }
+            }
+          </style>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', navButtonsHTML);
+      }
+      
+      // Wait for DOM to be fully loaded
+      setTimeout(() => {
+        initNavigationHistory();
+        setupNavigationTracking();
+        setupKeyboardShortcuts();
+        
+        // Add event listeners to buttons
+        const backBtn = document.getElementById('back-button');
+        const forwardBtn = document.getElementById('forward-button');
+        
+        if (backBtn) backBtn.addEventListener('click', navigateBack);
+        if (forwardBtn) forwardBtn.addEventListener('click', navigateForward);
+        
+        // Make buttons container visible
+        const buttonsContainer = document.getElementById('navigation-buttons');
+        if (buttonsContainer) buttonsContainer.style.display = 'flex';
+      }, 1000);
+    }
+    
+    // Start the navigation system after a short delay
+    setTimeout(initNavigationSystem, 500);
+    
+  })();
+
+
+  
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
      
      
      
