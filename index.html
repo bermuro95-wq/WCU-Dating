@@ -5194,6 +5194,400 @@ document.addEventListener('DOMContentLoaded', function() {
      
      
      
+     
+     
+     
+     
+     
+     
+     
+     
+     
+  
+  // Fixed Navigation Menu - No Refresh Needed
+  (function() {
+    
+    // Enhanced navigation system
+    function fixNavigationMenu() {
+      console.log('Fixing navigation menu...');
+      
+      // Remove all existing click listeners first
+      const navLinks = document.querySelectorAll('.nav-link');
+      navLinks.forEach(link => {
+        link.replaceWith(link.cloneNode(true));
+      });
+      
+      // Get fresh references after cloning
+      const freshNavLinks = document.querySelectorAll('.nav-link');
+      
+      // Add reliable click handlers
+      freshNavLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const sectionId = this.getAttribute('data-section');
+          console.log('Navigation clicked:', sectionId);
+          
+          if (sectionId) {
+            // Show the section
+            showSection(sectionId);
+            
+            // Update active navigation
+            updateActiveNav(this);
+            
+            // Load section-specific content
+            loadSectionContent(sectionId);
+            
+            // Close mobile menu if open
+            closeMobileMenu();
+          }
+        });
+      });
+      
+      // Fix mobile menu toggle
+      const menuToggle = document.getElementById('menuToggle');
+      if (menuToggle) {
+        menuToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleMobileMenu();
+        });
+      }
+      
+      // Close menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('nav') && !e.target.closest('.menu-toggle')) {
+          closeMobileMenu();
+        }
+      });
+      
+      // Prevent default behavior on all nav links
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('nav-link') || e.target.closest('.nav-link')) {
+          e.preventDefault();
+        }
+      });
+    }
+    
+    // Enhanced showSection function
+    function showSection(sectionId) {
+      console.log('Showing section:', sectionId);
+      
+      // Hide all sections
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      // Show target section
+      const targetSection = document.getElementById(sectionId);
+      if (targetSection) {
+        targetSection.classList.add('active');
+        console.log('Section displayed:', sectionId);
+      } else {
+        console.error('Section not found:', sectionId);
+      }
+    }
+    
+    // Update active navigation
+    function updateActiveNav(activeLink) {
+      const navLinks = document.querySelectorAll('.nav-link');
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+      });
+      activeLink.classList.add('active');
+    }
+    
+    // Load section-specific content
+    function loadSectionContent(sectionId) {
+      switch(sectionId) {
+        case 'dashboard':
+          if (typeof loadDashboard === 'function' && currentUser) {
+            loadDashboard();
+          }
+          break;
+        case 'browse':
+          if (typeof loadStudents === 'function' && currentUser) {
+            loadStudents();
+          }
+          break;
+        case 'messages':
+          if (typeof loadPersistentConversations === 'function' && currentUser) {
+            loadPersistentConversations();
+          } else if (typeof loadConversations === 'function' && currentUser) {
+            loadConversations();
+          }
+          break;
+        case 'profile':
+          if (typeof loadProfile === 'function' && currentUser) {
+            loadProfile();
+          }
+          break;
+        case 'timeline':
+          if (typeof loadTimelinePosts === 'function' && currentUser) {
+            loadTimelinePosts();
+          }
+          break;
+      }
+    }
+    
+    // Mobile menu functions
+    function toggleMobileMenu() {
+      const navMenu = document.getElementById('navMenu');
+      if (navMenu) {
+        navMenu.classList.toggle('show');
+        console.log('Mobile menu toggled');
+      }
+    }
+    
+    function closeMobileMenu() {
+      const navMenu = document.getElementById('navMenu');
+      if (navMenu) {
+        navMenu.classList.remove('show');
+      }
+    }
+    
+    // Enhanced navigation for dashboard cards
+    function fixDashboardNavigation() {
+      const dashboardCards = document.querySelectorAll('.dashboard-cards .card.nav-link');
+      dashboardCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          const sectionId = this.getAttribute('data-section');
+          if (sectionId && sectionId !== 'home') {
+            showSection(sectionId);
+            
+            // Find and update the corresponding nav link
+            const navLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
+            if (navLink) {
+              updateActiveNav(navLink);
+            }
+            
+            loadSectionContent(sectionId);
+            closeMobileMenu();
+          }
+        });
+      });
+    }
+    
+    // Handle browser back/forward buttons
+    function setupBrowserNavigation() {
+      window.addEventListener('popstate', function(event) {
+        // Get section from URL hash
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+          const navLink = document.querySelector(`.nav-link[data-section="${hash}"]`);
+          if (navLink) {
+            showSection(hash);
+            updateActiveNav(navLink);
+            loadSectionContent(hash);
+          }
+        }
+      });
+    }
+    
+    // Update URL without refreshing
+    function updateURL(sectionId) {
+      if (history.pushState) {
+        history.pushState(null, null, `#${sectionId}`);
+      } else {
+        window.location.hash = `#${sectionId}`;
+      }
+    }
+    
+    // Enhanced initialization
+    function initEnhancedNavigation() {
+      console.log('Initializing enhanced navigation...');
+      
+      // Fix main navigation
+      fixNavigationMenu();
+      
+      // Fix dashboard navigation
+      fixDashboardNavigation();
+      
+      // Setup browser navigation
+      setupBrowserNavigation();
+      
+      // Enhance existing showSection function
+      enhanceShowSection();
+      
+      // Load current section from URL
+      loadFromURL();
+      
+      console.log('Enhanced navigation initialized');
+    }
+    
+    // Enhance existing showSection function
+    function enhanceShowSection() {
+      if (window.showSection) {
+        const originalShowSection = window.showSection;
+        window.showSection = function(sectionId) {
+          originalShowSection(sectionId);
+          updateURL(sectionId);
+          loadSectionContent(sectionId);
+        };
+      } else {
+        window.showSection = function(sectionId) {
+          showSection(sectionId);
+          updateURL(sectionId);
+          loadSectionContent(sectionId);
+        };
+      }
+    }
+    
+    // Load section from URL
+    function loadFromURL() {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        const navLink = document.querySelector(`.nav-link[data-section="${hash}"]`);
+        if (navLink) {
+          showSection(hash);
+          updateActiveNav(navLink);
+          loadSectionContent(hash);
+        }
+      }
+    }
+    
+    // Add styles for better mobile experience
+    function addNavigationStyles() {
+      const styles = document.createElement('style');
+      styles.textContent = `
+        /* Improved mobile navigation */
+        @media (max-width: 768px) {
+          nav ul {
+            transition: all 0.3s ease;
+            transform: translateY(-10px);
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+          }
+          
+          nav ul.show {
+            transform: translateY(0);
+            opacity: 1;
+            height: auto;
+          }
+          
+          .nav-link {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: block;
+            transition: background-color 0.3s ease;
+          }
+          
+          .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+          }
+          
+          .nav-link:active {
+            transform: scale(0.98);
+          }
+        }
+        
+        /* Smooth transitions for all navigation */
+        .nav-link {
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+        
+        .nav-link:hover {
+          transform: translateY(-2px);
+        }
+        
+        .dashboard-cards .card {
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+        
+        .dashboard-cards .card:hover {
+          transform: translateY(-5px);
+        }
+        
+        .dashboard-cards .card:active {
+          transform: translateY(-2px);
+        }
+        
+        /* Active state improvements */
+        .nav-link.active {
+          background-color: rgba(255, 255, 255, 0.2);
+          transform: translateY(-2px);
+        }
+        
+        /* Loading states */
+        .section {
+          transition: opacity 0.3s ease;
+        }
+        
+        .section.active {
+          animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `;
+      document.head.appendChild(styles);
+    }
+    
+    // Initialize the enhanced navigation
+    function startEnhancedNavigation() {
+      // Wait for DOM to be fully loaded
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          addNavigationStyles();
+          initEnhancedNavigation();
+        });
+      } else {
+        addNavigationStyles();
+        initEnhancedNavigation();
+      }
+      
+      // Also initialize after a short delay to catch dynamic elements
+      setTimeout(initEnhancedNavigation, 1000);
+    }
+    
+    // Start the enhanced navigation system
+    console.log('Starting enhanced navigation system...');
+    startEnhancedNavigation();
+    
+  })();
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
 
   </script>
 </body>
