@@ -1889,142 +1889,259 @@ setupMessageListeners();
             }
         });
         
-        // Handle signup functionality
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const fullName = document.getElementById('fullName').value;
-            const studentId = document.getElementById('studentId').value;
-            const department = document.getElementById('department').value;
-            const year = document.getElementById('year').value;
-            const gender = document.getElementById('gender').value;
-            const lookingFor = document.getElementById('lookingFor').value;
-            const maritalStatus = document.getElementById('maritalStatus').value;
-            const relationshipExp = document.getElementById('relationshipExp').value;
-            const religion = document.getElementById('religion').value;
-            const personality = document.getElementById('personality').value;
-            const interests = document.getElementById('interests').value;
-            const bio = document.getElementById('bio').value;
-            const phone = document.getElementById('phone').value;
-            const profilePhoto = document.getElementById('profilePhoto').files[0];
-            
-            // Validation
-            if (password !== confirmPassword) {
-                showNotification('Passwords do not match', 'error');
-                return;
-            }
-            
-            toggleButtonLoading('signup', true);
-            
-            
-try {
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+// Handle signup functionality - FIXED VERSION
+document.getElementById('signupForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  // Get form values
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  const fullName = document.getElementById('fullName').value;
+  const studentId = document.getElementById('studentId').value;
+  const department = document.getElementById('department').value;
+  const year = document.getElementById('year').value;
+  const gender = document.getElementById('gender').value;
+  const lookingFor = document.getElementById('lookingFor').value;
+  const maritalStatus = document.getElementById('maritalStatus').value;
+  const relationshipExp = document.getElementById('relationshipExp').value;
+  const religion = document.getElementById('religion').value;
+  const personality = document.getElementById('personality').value;
+  const interests = document.getElementById('interests').value;
+  const bio = document.getElementById('bio').value;
+  const phone = document.getElementById('phone').value;
+  const profilePhoto = document.getElementById('profilePhoto').files[0];
+  
+  // Validation
+  if (password !== confirmPassword) {
+    showNotification('Passwords do not match', 'error');
+    return;
+  }
+  
+  toggleButtonLoading('signup', true);
+  
+  try {
     // Create user with Firebase Authentication
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     currentUser = userCredential.user;
     
-    console.log('User created in Authentication:', currentUser.uid);
-    
     let photoURL = null;
     // Upload profile photo if selected
     if (profilePhoto) {
-        console.log('Uploading profile photo...');
-        try {
-            const storageRef = storage.ref();
-            const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
-            await photoRef.put(profilePhoto);
-            photoURL = await photoRef.getDownloadURL();
-            console.log('Profile photo uploaded:', photoURL);
-        } catch (photoError) {
-            console.error('Profile photo upload failed:', photoError);
-            showNotification('Profile photo upload failed, but account was created', 'warning');
-        }
+      try {
+        const storageRef = storage.ref();
+        const photoRef = storageRef.child(`profile_photos/${currentUser.uid}`);
+        await photoRef.put(profilePhoto);
+        photoURL = await photoRef.getDownloadURL();
+      } catch (photoError) {
+        console.error('Profile photo upload failed:', photoError);
+        // Continue without photo
+      }
     }
     
     // Create user profile in Firestore
     const userProfileData = {
-        uid: currentUser.uid,
-        email: email,
-        fullName: fullName,
-        studentId: studentId,
-        department: department,
-        year: year,
-        gender: gender,
-        lookingFor: lookingFor,
-        maritalStatus: maritalStatus,
-        relationshipExp: relationshipExp,
-        religion: religion,
-        personality: personality,
-        interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
-        bio: bio,
-        phone: phone || '',
-        photoURL: photoURL,
-        isOnline: true,
-        lastSeen: new Date(),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      uid: currentUser.uid,
+      email: email,
+      fullName: fullName,
+      studentId: studentId,
+      department: department,
+      year: year,
+      gender: gender,
+      lookingFor: lookingFor,
+      maritalStatus: maritalStatus,
+      relationshipExp: relationshipExp,
+      religion: religion,
+      personality: personality,
+      interests: interests.split(',').map(item => item.trim()).filter(item => item !== ''),
+      bio: bio,
+      phone: phone || '',
+      photoURL: photoURL,
+      isOnline: true,
+      lastSeen: new Date(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    
-await db.collection('users').doc(currentUser.uid).set(userProfileData);
-    
-    
-    console.log('Creating user profile in Firestore:', userProfileData);
     
     // CREATE PROFILE IN FIRESTORE
     await db.collection('users').doc(currentUser.uid).set(userProfileData);
     
-    console.log('User profile created successfully in Firestore');
+    // CRITICAL FIX: Set userProfile immediately and ensure it's available
+    userProfile = userProfileData;
     
-
+    showNotification('Registration successful! Loading your profile...', 'success');
     
-// Load the profile to verify it was created
-userProfile = await loadUserProfile(currentUser.uid);
-
-if (userProfile) {
-    showNotification('Registration successful!', 'success');
-    
-    // Load dashboard first to ensure data is available
-    if (typeof loadDashboard === 'function') {
-        loadDashboard();
-    }
-    
-    // Update navigation (this should happen after data is loaded)
+    // Update navigation
     updateNavigation(true);
     
-    // Show dashboard
-    showSection('dashboard');
-    updateActiveNav(document.querySelector('[data-section="dashboard"]'));
-} else {
-    throw new Error('Failed to create user profile');
-}
+    // CRITICAL FIX: Wait a bit for Firestore to process, then load and redirect
+    setTimeout(async () => {
+      // Reload profile data from Firestore to ensure consistency
+      userProfile = await loadUserProfile(currentUser.uid);
+      
+      if (userProfile) {
+        // Redirect to profile section
+        showSection('profile');
+        updateActiveNav(document.querySelector('[data-section="profile"]'));
+        
+        // CRITICAL FIX: Force reload profile data to display immediately
+        loadProfile();
+        
+        showNotification('Welcome! Your profile is ready.', 'success');
+      } else {
+        showNotification('Profile created! Loading your data...', 'warning');
+        // Fallback: Use the data we already have
+        loadProfile();
+      }
+    }, 1000);
     
-    
-    
-    
-} catch (error) {
+  } catch (error) {
     console.error('Signup error:', error);
     showNotification(error.message, 'error');
     
     // Delete user if profile creation failed
     if (currentUser) {
-        try {
-            await currentUser.delete();
-            console.log('User deleted from Authentication due to profile creation failure');
-        } catch (deleteError) {
-            console.error('Error deleting user:', deleteError);
-        }
-        currentUser = null;
+      try {
+        await currentUser.delete();
+      } catch (deleteError) {
+        console.error('Error deleting user:', deleteError);
+      }
+      currentUser = null;
     }
+  } finally {
+    toggleButtonLoading('signup', false);
+  }
+});
 
-
-} finally {
-toggleButtonLoading('signup', false);
+// Load user profile - ENHANCED VERSION
+async function loadProfile() {
+  if (!currentUser) {
+    console.log('No current user for profile loading');
+    return;
+  }
+  
+  console.log('Loading profile for user:', currentUser.uid);
+  
+  try {
+    // Always try to load fresh data from Firestore first
+    const freshProfile = await loadUserProfile(currentUser.uid);
+    
+    if (freshProfile) {
+      userProfile = freshProfile;
+      console.log('Profile loaded from Firestore:', userProfile);
+    } else if (userProfile) {
+      console.log('Using existing userProfile data');
+    } else {
+      console.log('No profile data available');
+      showNotification('Profile data not available', 'error');
+      return;
+    }
+    
+    // Populate form fields - WITH NULL CHECKS
+    document.getElementById('profileName').value = userProfile.fullName || '';
+    document.getElementById('profileStudentId').value = userProfile.studentId || '';
+    document.getElementById('profileDepartment').value = userProfile.department || '';
+    document.getElementById('profileYear').value = userProfile.year || '';
+    document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
+    document.getElementById('profileBio').value = userProfile.bio || '';
+    
+    console.log('Form populated with:', {
+      name: userProfile.fullName,
+      department: userProfile.department,
+      year: userProfile.year
+    });
+    
+    // Load profile image if available
+    if (userProfile.photoURL) {
+      console.log('Setting profile photo:', userProfile.photoURL);
+      document.getElementById('profilePhotoPreview').src = userProfile.photoURL;
+      document.getElementById('profilePhotoPreview').style.display = 'block';
+      document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+    } else {
+      console.log('No profile photo, using placeholder');
+      document.getElementById('profilePhotoPreview').style.display = 'none';
+      document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
+    }
+    
+    // Also update dashboard if it's visible
+    if (typeof loadDashboard === 'function') {
+      loadDashboard();
+    }
+    
+  } catch (error) {
+    console.error('Error in loadProfile:', error);
+    showNotification('Error loading profile data', 'error');
+  }
 }
 
-}); // ← This should be the closing of the signup event handler
+// Add this improved function to load user profile from Firestore
+async function loadUserProfile(uid) {
+  try {
+    console.log('Loading user profile from Firestore for:', uid);
+    const userDoc = await db.collection('users').doc(uid).get();
+    
+    if (userDoc.exists) {
+      const profileData = userDoc.data();
+      console.log('Profile data retrieved:', profileData);
+      return profileData;
+    } else {
+      console.log('No profile found in Firestore for user:', uid);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error loading user profile:', error);
+    return null;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+         
+
+
+
+        
+        
+        
+        
+        
+        
 
 // Load dashboard data - MOVE THIS FUNCTION HERE
 async function loadDashboard() {
@@ -2136,27 +2253,79 @@ const usersSnapshot = await query.get();
             }
         }
         
-        // Load user profile
-        function loadProfile() {
-            if (!currentUser || !userProfile) return;
-            
-            document.getElementById('profileName').value = userProfile.fullName;
-            document.getElementById('profileStudentId').value = userProfile.studentId;
-            document.getElementById('profileDepartment').value = userProfile.department;
-            document.getElementById('profileYear').value = userProfile.year;
-            document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
-            document.getElementById('profileBio').value = userProfile.bio;
-            
-            // Load profile image if available
-            if (userProfile.photoURL) {
-                document.getElementById('profilePhotoPreview').src = userProfile.photoURL;
-                document.getElementById('profilePhotoPreview').style.display = 'block';
-                document.getElementById('profilePhotoPlaceholder').style.display = 'none';
-            } else {
-                document.getElementById('profilePhotoPreview').style.display = 'none';
-                document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
-            }
-        }
+        
+        
+        
+        
+        
+        
+// Load user profile - ENHANCED VERSION
+async function loadProfile() {
+  if (!currentUser) {
+    console.log('No current user for profile loading');
+    return;
+  }
+  
+  console.log('Loading profile for user:', currentUser.uid);
+  
+  try {
+    // Always try to load fresh data from Firestore first
+    const freshProfile = await loadUserProfile(currentUser.uid);
+    
+    if (freshProfile) {
+      userProfile = freshProfile;
+      console.log('Profile loaded from Firestore:', userProfile);
+    } else if (userProfile) {
+      console.log('Using existing userProfile data');
+    } else {
+      console.log('No profile data available');
+      showNotification('Profile data not available', 'error');
+      return;
+    }
+    
+    // Populate form fields - WITH NULL CHECKS
+    document.getElementById('profileName').value = userProfile.fullName || '';
+    document.getElementById('profileStudentId').value = userProfile.studentId || '';
+    document.getElementById('profileDepartment').value = userProfile.department || '';
+    document.getElementById('profileYear').value = userProfile.year || '';
+    document.getElementById('profileInterests').value = userProfile.interests ? userProfile.interests.join(', ') : '';
+    document.getElementById('profileBio').value = userProfile.bio || '';
+    
+    console.log('Form populated with:', {
+      name: userProfile.fullName,
+      department: userProfile.department,
+      year: userProfile.year
+    });
+    
+    // Load profile image if available
+    if (userProfile.photoURL) {
+      console.log('Setting profile photo:', userProfile.photoURL);
+      document.getElementById('profilePhotoPreview').src = userProfile.photoURL;
+      document.getElementById('profilePhotoPreview').style.display = 'block';
+      document.getElementById('profilePhotoPlaceholder').style.display = 'none';
+    } else {
+      console.log('No profile photo, using placeholder');
+      document.getElementById('profilePhotoPreview').style.display = 'none';
+      document.getElementById('profilePhotoPlaceholder').style.display = 'flex';
+    }
+    
+    // Also update dashboard if it's visible
+    if (typeof loadDashboard === 'function') {
+      loadDashboard();
+    }
+    
+  } catch (error) {
+    console.error('Error in loadProfile:', error);
+    showNotification('Error loading profile data', 'error');
+  }
+}
+        
+        
+        
+ 
+        
+        
+        
         
         
 // Update profile
@@ -3778,252 +3947,8 @@ setTimeout(initMessageRequestsBar, 2000);
 
 
 
-// WCU Student ID Verification System
-document.addEventListener('DOMContentLoaded', function() {
-    // WCU Student ID validation function
-    function isValidWCUStudentId(studentId) {
-        // WCU ID pattern: WCU followed by 7 digits
-        const wcuIdPattern = /^WCU\d{7}$/i;
-        return wcuIdPattern.test(studentId);
-    }
 
-    // Add real-time validation to student ID field
-    const studentIdInput = document.getElementById('studentId');
-    if (studentIdInput) {
-        studentIdInput.addEventListener('blur', validateStudentId);
-        studentIdInput.addEventListener('input', function() {
-            this.style.borderColor = '';
-            const errorElement = document.getElementById('studentIdError');
-            if (errorElement) errorElement.remove();
-        });
-    }
 
-    // Validate student ID function
-    function validateStudentId() {
-        const studentId = studentIdInput.value.trim();
-        const errorElement = document.getElementById('studentIdError') || document.createElement('div');
-        errorElement.id = 'studentIdError';
-        errorElement.style.color = 'var(--error-color)';
-        errorElement.style.fontSize = '0.85rem';
-        errorElement.style.marginTop = '0.25rem';
-        
-        // Remove any existing error
-        if (studentIdInput.parentNode.contains(errorElement)) {
-            studentIdInput.parentNode.removeChild(errorElement);
-        }
-        
-        if (!studentId) {
-            studentIdInput.style.borderColor = 'var(--error-color)';
-            errorElement.textContent = 'Student ID is required';
-            studentIdInput.parentNode.appendChild(errorElement);
-            return false;
-        }
-        
-        if (!isValidWCUStudentId(studentId)) {
-            studentIdInput.style.borderColor = 'var(--error-color)';
-            errorElement.textContent = 'Invalid WCU Student ID format. Example: WCU1600881';
-            studentIdInput.parentNode.appendChild(errorElement);
-            return false;
-        }
-        
-        // If valid, show green border
-        studentIdInput.style.borderColor = 'var(--success-color)';
-        return true;
-    }
-
-    // Modify the signup form submission to include ID verification
-    const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Validate student ID first
-            if (!validateStudentId()) {
-                showNotification('Please enter a valid WCU Student ID', 'error');
-                return;
-            }
-            
-            // Get the student ID
-            const studentId = document.getElementById('studentId').value.trim().toUpperCase();
-            
-            // Check if this ID is already registered
-            try {
-                const querySnapshot = await db.collection('users')
-                    .where('studentId', '==', studentId)
-                    .get();
-                
-                if (!querySnapshot.empty) {
-                    showNotification('This Student ID is already registered', 'error');
-                    return;
-                }
-                
-                // If ID is valid and not registered, proceed with original signup
-                // but add email verification requirement
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                
-                // Password validation
-                if (password !== confirmPassword) {
-                    showNotification('Passwords do not match', 'error');
-                    return;
-                }
-                
-                toggleButtonLoading('signup', true);
-                
-                try {
-                    // Create user with Firebase Authentication
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    currentUser = userCredential.user;
-                    
-                    // Send email verification
-                    await currentUser.sendEmailVerification();
-                    
-                    // Continue with the rest of the signup process (profile creation)
-                    // ... [rest of your existing signup code]
-                    
-                    // After successful signup, show message about email verification
-                    showNotification('Registration successful! Please check your email to verify your account.', 'success');
-                    
-                } catch (error) {
-                    console.error('Signup error:', error);
-                    showNotification(error.message, 'error');
-                    
-                    // Delete user if profile creation failed
-                    if (currentUser) {
-                        try {
-                            await currentUser.delete();
-                        } catch (deleteError) {
-                            console.error('Error deleting user:', deleteError);
-                        }
-                        currentUser = null;
-                    }
-                } finally {
-                    toggleButtonLoading('signup', false);
-                }
-                
-            } catch (error) {
-                console.error('Error checking student ID:', error);
-                showNotification('Error verifying Student ID. Please try again.', 'error');
-            }
-        });
-    }
-
-    // Add visual indicator for email verification status
-    function updateEmailVerificationStatus() {
-        if (currentUser) {
-            // Check if user email is verified
-            currentUser.reload().then(() => {
-                const emailVerified = currentUser.emailVerified;
-                const profileNav = document.getElementById('profileNav');
-                
-                if (profileNav) {
-                    if (emailVerified) {
-                        // Add verification badge
-                        if (!profileNav.querySelector('.verified-badge')) {
-                            const badge = document.createElement('span');
-                            badge.className = 'verified-badge';
-                            badge.innerHTML = ' <i class="fas fa-check-circle" style="color: var(--success-color);"></i>';
-                            badge.title = 'Email verified';
-                            profileNav.appendChild(badge);
-                        }
-                    } else {
-                        // Add warning for unverified email
-                        if (!profileNav.querySelector('.unverified-warning')) {
-                            const warning = document.createElement('span');
-                            warning.className = 'unverified-warning';
-                            warning.innerHTML = ' <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>';
-                            warning.title = 'Email not verified';
-                            profileNav.appendChild(warning);
-                        }
-                    }
-                }
-            }).catch(error => {
-                console.error('Error reloading user:', error);
-            });
-        }
-    }
-
-    // Check verification status on page load and auth state change
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            currentUser = user;
-            // Check email verification status
-            updateEmailVerificationStatus();
-            
-            // Set up a listener for email verification
-            setInterval(updateEmailVerificationStatus, 300000); // Check every 5 minutes
-        }
-    });
-
-    // Add resend verification email functionality to profile page
-    function addResendVerificationButton() {
-        const profileForm = document.getElementById('profileForm');
-        if (profileForm && currentUser && !currentUser.emailVerified) {
-            // Check if button already exists
-            if (!document.getElementById('resendVerificationBtn')) {
-                const resendBtn = document.createElement('button');
-                resendBtn.type = 'button';
-                resendBtn.id = 'resendVerificationBtn';
-                resendBtn.className = 'btn btn-outline';
-                resendBtn.style.marginTop = '1rem';
-                resendBtn.innerHTML = '<i class="fas fa-envelope"></i> Resend Verification Email';
-                resendBtn.addEventListener('click', resendVerificationEmail);
-                
-                profileForm.appendChild(resendBtn);
-            }
-        }
-    }
-
-    // Resend verification email function
-    async function resendVerificationEmail() {
-        if (!currentUser) return;
-        
-        try {
-            await currentUser.sendEmailVerification();
-            showNotification('Verification email sent. Please check your inbox.', 'success');
-        } catch (error) {
-            console.error('Error sending verification email:', error);
-            showNotification('Error sending verification email. Please try again later.', 'error');
-        }
-    }
-
-    // Call this function when profile section is loaded
-    const originalLoadProfile = loadProfile;
-    loadProfile = function() {
-        originalLoadProfile();
-        addResendVerificationButton();
-        updateEmailVerificationStatus();
-    };
-
-    // Add styles for verification indicators
-    const style = document.createElement('style');
-    style.textContent = `
-        .verified-badge, .unverified-warning {
-            margin-left: 5px;
-            font-size: 0.9em;
-        }
-        
-        #studentId.verified {
-            border-color: var(--success-color) !important;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='%234caf50' d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 20px;
-            padding-right: 40px;
-        }
-        
-        #studentId.unverified {
-            border-color: var(--error-color) !important;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='%23f44336' d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 20px;
-            padding-right: 40px;
-        }
-    `;
-    document.head.appendChild(style);
-});
 
      
      
@@ -4314,228 +4239,6 @@ document.addEventListener('DOMContentLoaded', function() {
      
      
      
-  // Global Refresh Button for Entire Dating Site
-  (function() {
-    // Create global refresh button
-    function createGlobalRefreshButton() {
-      // Check if button already exists
-      if (document.getElementById('globalRefreshBtn')) return;
-      
-      // Create refresh button
-      const refreshBtn = document.createElement('button');
-      refreshBtn.id = 'globalRefreshBtn';
-      refreshBtn.className = 'global-refresh-btn';
-      refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-      refreshBtn.title = 'Refresh Site';
-      refreshBtn.setAttribute('aria-label', 'Refresh website');
-      
-      // Add styles
-      const styles = document.createElement('style');
-      styles.textContent = `
-        .global-refresh-btn {
-          position: fixed;
-          top: 90px;
-          right: 20px;
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: var(--primary-color);
-          color: white;
-          border: none;
-          cursor: pointer;
-          font-size: 20px;
-          box-shadow: var(--shadow);
-          z-index: 999;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-        }
-        
-        .global-refresh-btn:hover {
-          background: var(--primary-dark);
-          transform: rotate(45deg) scale(1.1);
-          box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-        }
-        
-        .global-refresh-btn:active {
-          transform: rotate(90deg) scale(0.95);
-        }
-        
-        .global-refresh-btn.refreshing i {
-          animation: spin 1s infinite linear;
-        }
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 768px) {
-          .global-refresh-btn {
-            top: 80px;
-            right: 15px;
-            width: 45px;
-            height: 45px;
-            font-size: 18px;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          .global-refresh-btn {
-            top: 70px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            font-size: 16px;
-          }
-        }
-      `;
-      document.head.appendChild(styles);
-      
-      // Add to page
-      document.body.appendChild(refreshBtn);
-      
-      // Add event listener
-      refreshBtn.addEventListener('click', function() {
-        refreshEntireSite();
-      });
-    }
-    
-    // Refresh entire site function
-    function refreshEntireSite() {
-      const refreshBtn = document.getElementById('globalRefreshBtn');
-      
-      // Show refreshing state
-      if (refreshBtn) {
-        refreshBtn.classList.add('refreshing');
-        refreshBtn.disabled = true;
-      }
-      
-      // Show loading notification
-      showNotification('Refreshing site...', 'warning');
-      
-      // Perform refresh actions based on current section
-      const currentSection = document.querySelector('.section.active');
-      if (currentSection) {
-        const sectionId = currentSection.id;
-        
-        switch(sectionId) {
-          case 'dashboard':
-            if (typeof loadDashboard === 'function') {
-              loadDashboard();
-            }
-            break;
-            
-          case 'browse':
-            if (typeof loadStudents === 'function') {
-              loadStudents();
-            }
-            break;
-            
-          case 'messages':
-            if (typeof loadPersistentConversations === 'function') {
-              loadPersistentConversations();
-            } else if (typeof loadConversations === 'function') {
-              loadConversations();
-            }
-            break;
-            
-          case 'profile':
-            if (typeof loadProfile === 'function') {
-              loadProfile();
-            }
-            break;
-            
-          default:
-            // For other sections, do a soft reload
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
-            return;
-        }
-      }
-      
-      // Also refresh any real-time data
-      refreshAllRealtimeData();
-      
-      // Reset button after 2 seconds
-      setTimeout(() => {
-        if (refreshBtn) {
-          refreshBtn.classList.remove('refreshing');
-          refreshBtn.disabled = false;
-        }
-        showNotification('Site refreshed successfully', 'success');
-      }, 2000);
-    }
-    
-    // Refresh all real-time data
-    function refreshAllRealtimeData() {
-      // Refresh user online status
-      if (currentUser) {
-        db.collection('users').doc(currentUser.uid).update({
-          isOnline: true,
-          lastSeen: new Date()
-        }).catch(error => {
-          console.error('Error updating online status:', error);
-        });
-      }
-      
-      // Refresh conversations if in messages section
-      if (document.getElementById('messages')?.classList.contains('active')) {
-        if (typeof loadPersistentConversations === 'function') {
-          loadPersistentConversations();
-        }
-      }
-      
-      // Refresh students list if in browse section
-      if (document.getElementById('browse')?.classList.contains('active')) {
-        if (typeof loadStudents === 'function') {
-          loadStudents();
-        }
-      }
-    }
-    
-    // Add keyboard shortcut (Ctrl + R)
-    function addKeyboardShortcut() {
-      document.addEventListener('keydown', function(e) {
-        // Ctrl + R or Cmd + R
-        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-          e.preventDefault(); // Prevent browser refresh
-          refreshEntireSite();
-        }
-      });
-    }
-    
-    // Initialize the global refresh button
-    function initGlobalRefreshButton() {
-      // Wait for page to load
-      setTimeout(() => {
-        createGlobalRefreshButton();
-        addKeyboardShortcut();
-        
-        // Also add refresh capability to browser online/offline events
-        window.addEventListener('online', function() {
-          showNotification('Connection restored. Refreshing data...', 'success');
-          refreshAllRealtimeData();
-        });
-        
-        window.addEventListener('offline', function() {
-          showNotification('You are currently offline', 'warning');
-        });
-      }, 1500);
-    }
-    
-    // Start the global refresh system
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initGlobalRefreshButton);
-    } else {
-      initGlobalRefreshButton();
-    }
-    
-  })();
-
-
 
      
      
@@ -4996,6 +4699,45 @@ document.addEventListener('DOMContentLoaded', function() {
      
      
      
+     
+     
+     
+     
+     
+     
+     
+
+     
+     
+     
+     
+     
+     
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+
      
      
      
