@@ -6965,6 +6965,678 @@ window.showSection = function(sectionId) {
      
      
      
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+
+
+
+// ===== REAL-TIME ONLINE USER NOTIFICATIONS =====
+
+// Track which users we've already notified about
+let notifiedOnlineUsers = new Set();
+let onlineUsersListener = null;
+
+// Initialize online user notifications
+function initOnlineUserNotifications() {
+    console.log('Initializing online user notifications...');
+    
+    // Request browser notification permission
+    requestNotificationPermission();
+    
+    // Set up real-time listener for user online status
+    setupOnlineUsersListener();
+    
+    // Clean up when user logs out
+    setupLogoutCleanup();
+}
+
+// Request browser notification permission
+function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        console.log("This browser does not support notifications");
+        return;
+    }
+    
+    if (Notification.permission === "default") {
+        Notification.requestPermission().then(permission => {
+            console.log("Notification permission:", permission);
+        });
+    }
+}
+
+// Set up real-time listener for online users
+function setupOnlineUsersListener() {
+    if (!currentUser) return;
+    
+    // Clean up previous listener if exists
+    if (onlineUsersListener) {
+        onlineUsersListener();
+    }
+    
+    onlineUsersListener = db.collection('users')
+        .where('uid', '!=', currentUser.uid)
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach(async (change) => {
+                if (change.type === 'modified') {
+                    const user = change.doc.data();
+                    const userId = user.uid;
+                    
+                    // Check if user came online
+                    const previousData = change.doc._document?.previousValue?.data()?.value?.mapValue?.fields;
+                    const wasPreviouslyOnline = previousData?.isOnline?.booleanValue;
+                    
+                    if (user.isOnline && !wasPreviouslyOnline && !notifiedOnlineUsers.has(userId)) {
+                        // User came online - show notification
+                        showOnlineUserNotification(user);
+                        
+                        // Add to notified set
+                        notifiedOnlineUsers.add(userId);
+                        
+                        // Remove from notified set after 5 minutes to allow re-notification
+                        setTimeout(() => {
+                            notifiedOnlineUsers.delete(userId);
+                        }, 5 * 60 * 1000); // 5 minutes
+                    }
+                }
+            });
+        });
+}
+
+// Show browser notification for online user
+function showOnlineUserNotification(user) {
+    const notificationTitle = `${user.fullName} is now online`;
+    const notificationOptions = {
+        body: `${user.fullName} from ${user.department} is now available to chat`,
+        icon: user.photoURL || '/default-avatar.png',
+        badge: '/badge.png',
+        tag: `online-${user.uid}`,
+        requireInteraction: false,
+        silent: false,
+        vibrate: [200, 100, 200]
+    };
+    
+    // Show browser notification
+    if (Notification.permission === "granted") {
+        const notification = new Notification(notificationTitle, notificationOptions);
+        
+        // Add click handler to focus on messages
+        notification.onclick = function() {
+            window.focus();
+            
+            // Navigate to messages section
+            showSection('messages');
+            updateActiveNav(document.querySelector('[data-section="messages"]'));
+            
+            // Try to start conversation with this user
+            setTimeout(() => {
+                startConversation(user.uid);
+            }, 500);
+            
+            notification.close();
+        };
+        
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+            notification.close();
+        }, 5000);
+    }
+    
+    // Also show in-app notification
+    showInAppOnlineNotification(user);
+}
+
+// Show in-app notification for online user
+function showInAppOnlineNotification(user) {
+    const notificationContainer = document.getElementById('notification');
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification success show online-user-notification';
+    notification.style.cssText = `
+        background: linear-gradient(135deg, var(--success-color), #16a34a);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        margin-bottom: 10px;
+        animation: slideInRight 0.3s ease;
+        max-width: 400px;
+    `;
+    
+    notification.innerHTML = `
+        <div style="flex-shrink: 0;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); 
+                 display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                ${user.photoURL ? 
+                    `<img src="${user.photoURL}" alt="${user.fullName}" 
+                         style="width: 100%; height: 100%; object-fit: cover;">` : 
+                    `<i class="fas fa-user" style="color: white;"></i>`
+                }
+            </div>
+        </div>
+        <div style="flex: 1;">
+            <strong>${user.fullName} is online</strong>
+            <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+                ${user.department} • Click to message
+            </p>
+        </div>
+        <button class="close-notification" style="
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        ">&times;</button>
+    `;
+    
+    // Add click handler
+    notification.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('close-notification')) {
+            // Navigate to messages and start conversation
+            showSection('messages');
+            updateActiveNav(document.querySelector('[data-section="messages"]'));
+            
+            setTimeout(() => {
+                startConversation(user.uid);
+            }, 500);
+        }
+        
+        this.remove();
+    });
+    
+    // Add close button handler
+    const closeBtn = notification.querySelector('.close-notification');
+    closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        notification.remove();
+    });
+    
+    // Add to notification container
+    notificationContainer.parentNode.insertBefore(notification, notificationContainer.nextSibling);
+    
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 8000);
+}
+
+// Clean up when user logs out
+function setupLogoutCleanup() {
+    // Override the existing logout function to clean up listeners
+    const originalLogout = window.logout;
+    window.logout = function() {
+        // Clean up online users listener
+        if (onlineUsersListener) {
+            onlineUsersListener();
+            onlineUsersListener = null;
+        }
+        
+        // Clear notified users
+        notifiedOnlineUsers.clear();
+        
+        // Call original logout function
+        if (originalLogout) {
+            originalLogout();
+        }
+    };
+}
+
+// Initialize when user logs in
+function initOnlineNotificationsOnLogin() {
+    if (currentUser) {
+        setTimeout(() => {
+            initOnlineUserNotifications();
+        }, 2000);
+    }
+}
+
+// Add CSS styles for online notifications
+const onlineNotificationStyles = document.createElement('style');
+onlineNotificationStyles.textContent = `
+    .online-user-notification {
+        animation: slideInRight 0.3s ease !important;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .online-user-notification:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        transition: all 0.3s ease;
+    }
+    
+    .close-notification:hover {
+        opacity: 0.7;
+        transform: scale(1.1);
+        transition: all 0.2s ease;
+    }
+    
+    /* Online status indicator in user lists */
+    .online-indicator {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 12px;
+        height: 12px;
+        background-color: var(--success-color);
+        border-radius: 50%;
+        border: 2px solid white;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    /* Online users sidebar */
+    .online-users-sidebar {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        width: 280px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        z-index: 998;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        display: none;
+    }
+    
+    .online-users-header {
+        padding: 15px;
+        border-bottom: 1px solid #e4e6eb;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .online-users-header h4 {
+        margin: 0;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .online-users-list {
+        padding: 10px;
+    }
+    
+    .online-user-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-bottom: 5px;
+    }
+    
+    .online-user-item:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .online-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e4e6eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .online-user-info {
+        flex: 1;
+    }
+    
+    .online-user-name {
+        font-weight: 500;
+        color: var(--primary-color);
+        margin-bottom: 2px;
+    }
+    
+    .online-user-department {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .online-users-sidebar {
+            position: fixed;
+            top: auto;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-height: 40vh;
+            border-radius: 12px 12px 0 0;
+        }
+    }
+`;
+
+document.head.appendChild(onlineNotificationStyles);
+
+// Create online users sidebar
+function createOnlineUsersSidebar() {
+    const sidebarHTML = `
+        <div class="online-users-sidebar" id="onlineUsersSidebar">
+            <div class="online-users-header">
+                <h4>
+                    <i class="fas fa-circle" style="color: var(--success-color); font-size: 0.8rem;"></i>
+                    Online Now
+                </h4>
+                <button id="closeOnlineSidebar" style="
+                    background: none;
+                    border: none;
+                    color: #666;
+                    cursor: pointer;
+                    padding: 5px;
+                ">&times;</button>
+            </div>
+            <div class="online-users-list" id="onlineUsersList">
+                <div class="spinner" style="margin: 20px auto;"></div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', sidebarHTML);
+    
+    // Add event listeners
+    document.getElementById('closeOnlineSidebar').addEventListener('click', function() {
+        document.getElementById('onlineUsersSidebar').style.display = 'none';
+    });
+}
+
+// Load online users for sidebar
+async function loadOnlineUsers() {
+    if (!currentUser) return;
+    
+    const onlineUsersList = document.getElementById('onlineUsersList');
+    if (!onlineUsersList) return;
+    
+    try {
+        const onlineUsersSnapshot = await db.collection('users')
+            .where('isOnline', '==', true)
+            .where('uid', '!=', currentUser.uid)
+            .orderBy('fullName')
+            .get();
+        
+        onlineUsersList.innerHTML = '';
+        
+        if (onlineUsersSnapshot.empty) {
+            onlineUsersList.innerHTML = `
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p>No other users online</p>
+                </div>
+            `;
+            return;
+        }
+        
+        onlineUsersSnapshot.forEach(doc => {
+            const user = doc.data();
+            const userItem = document.createElement('div');
+            userItem.className = 'online-user-item';
+            
+            userItem.innerHTML = `
+                <div class="online-user-avatar">
+                    ${user.photoURL ? 
+                        `<img src="${user.photoURL}" alt="${user.fullName}" 
+                             style="width: 100%; height: 100%; object-fit: cover;">` : 
+                        `<i class="fas fa-user" style="color: var(--primary-color);"></i>`
+                    }
+                    <div class="online-indicator"></div>
+                </div>
+                <div class="online-user-info">
+                    <div class="online-user-name">${user.fullName}</div>
+                    <div class="online-user-department">${user.department}</div>
+                </div>
+            `;
+            
+            userItem.addEventListener('click', function() {
+                // Start conversation with this user
+                startConversation(user.uid);
+                
+                // Close sidebar on mobile
+                if (window.innerWidth <= 768) {
+                    document.getElementById('onlineUsersSidebar').style.display = 'none';
+                }
+            });
+            
+            onlineUsersList.appendChild(userItem);
+        });
+        
+    } catch (error) {
+        console.error('Error loading online users:', error);
+        onlineUsersList.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--error-color);">Error loading online users</p>';
+    }
+}
+
+// Toggle online users sidebar
+function toggleOnlineUsersSidebar() {
+    const sidebar = document.getElementById('onlineUsersSidebar');
+    if (!sidebar) return;
+    
+    if (sidebar.style.display === 'block') {
+        sidebar.style.display = 'none';
+    } else {
+        sidebar.style.display = 'block';
+        loadOnlineUsers();
+    }
+}
+
+// Add online users button to navigation
+function addOnlineUsersButton() {
+    const navMenu = document.getElementById('navMenu');
+    if (!navMenu) return;
+    
+    // Check if button already exists
+    if (document.getElementById('onlineUsersBtn')) return;
+    
+    const onlineUsersBtn = document.createElement('li');
+    onlineUsersBtn.id = 'onlineUsersBtn';
+    onlineUsersBtn.style.display = currentUser ? 'list-item' : 'none';
+    onlineUsersBtn.innerHTML = `
+        <a href="#" class="nav-link" id="onlineUsersNavBtn" style="color: var(--success-color);">
+            <i class="fas fa-circle" style="font-size: 0.7rem; margin-right: 5px;"></i>
+            Online
+        </a>
+    `;
+    
+    // Add to navigation (before About Us)
+    const aboutLink = document.querySelector('[data-section="about"]').parentElement;
+    navMenu.insertBefore(onlineUsersBtn, aboutLink);
+    
+    // Add event listener
+    document.getElementById('onlineUsersNavBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleOnlineUsersSidebar();
+    });
+}
+
+// Initialize the complete online notifications system
+function initCompleteOnlineSystem() {
+    // Create sidebar
+    createOnlineUsersSidebar();
+    
+    // Add navigation button
+    addOnlineUsersButton();
+    
+    // Initialize notifications
+    initOnlineUserNotifications();
+    
+    // Set up real-time updates for online users sidebar
+    if (currentUser) {
+        db.collection('users')
+            .where('isOnline', '==', true)
+            .where('uid', '!=', currentUser.uid)
+            .onSnapshot((snapshot) => {
+                // Update online users list when changes occur
+                loadOnlineUsers();
+                
+                // Update online count in navigation
+                updateOnlineCount(snapshot.size);
+            });
+    }
+}
+
+// Update online count in navigation
+function updateOnlineCount(count) {
+    const onlineBtn = document.getElementById('onlineUsersNavBtn');
+    if (onlineBtn) {
+        if (count > 0) {
+            onlineBtn.innerHTML = `
+                <i class="fas fa-circle" style="font-size: 0.7rem; margin-right: 5px;"></i>
+                Online (${count})
+            `;
+        } else {
+            onlineBtn.innerHTML = `
+                <i class="fas fa-circle" style="font-size: 0.7rem; margin-right: 5px;"></i>
+                Online
+            `;
+        }
+    }
+}
+
+// Initialize when page loads and user is authenticated
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for Firebase auth to initialize
+    setTimeout(() => {
+        if (currentUser) {
+            initCompleteOnlineSystem();
+        }
+    }, 3000);
+});
+
+// Also initialize when auth state changes
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        setTimeout(() => {
+            initCompleteOnlineSystem();
+        }, 2000);
+    } else {
+        // Hide online users button when logged out
+        const onlineUsersBtn = document.getElementById('onlineUsersBtn');
+        if (onlineUsersBtn) {
+            onlineUsersBtn.style.display = 'none';
+        }
+        
+        // Hide sidebar
+        const sidebar = document.getElementById('onlineUsersSidebar');
+        if (sidebar) {
+            sidebar.style.display = 'none';
+        }
+    }
+});
+
+// Make sure to call this when the messages section is loaded
+const originalLoadConversations = window.loadConversations;
+window.loadConversations = function() {
+    if (originalLoadConversations) {
+        originalLoadConversations();
+    }
+    
+    // Also load online users when in messages section
+    if (currentUser && document.getElementById('messages').classList.contains('active')) {
+        loadOnlineUsers();
+    }
+};
+
+console.log('Online user notifications system loaded successfully!');
+
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
 
   </script>
 </body>
