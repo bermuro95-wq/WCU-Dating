@@ -3140,6 +3140,30 @@ function getTimeAgo(date) {
     }
 }
 
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 // View other user's profile
 async function viewUserProfile(userId) {
     try {
@@ -3204,8 +3228,8 @@ async function viewUserProfile(userId) {
                             </div>
                         </div>
                         
-                        <button class="btn" style="width: 100%; margin-top: 20px;" onclick="startConversation('${userId}')">
-                            Send Message
+                        <button class="btn" style="width: 100%; margin-top: 20px;" onclick="startDirectMessage('${userId}')">
+                            <i class="fas fa-paper-plane"></i> Send Message
                         </button>
                     </div>
                 </div>
@@ -3224,9 +3248,9 @@ async function viewUserProfile(userId) {
             modal.style.alignItems = 'center';
             modal.style.zIndex = '1000';
             modal.innerHTML = `
-                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
-                    <div style="text-align: right;">
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;">
+                    <div style="text-align: right; position: absolute; top: 10px; right: 15px; z-index: 1001;">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; padding: 5px;">&times;</button>
                     </div>
                     ${profileHTML}
                 </div>
@@ -3241,6 +3265,82 @@ async function viewUserProfile(userId) {
         showNotification('Error loading profile', 'error');
     }
 }
+
+// NEW FUNCTION: Start direct message from profile
+async function startDirectMessage(otherUserId) {
+    try {
+        console.log('Starting direct message with user:', otherUserId);
+        
+        // 1. Close ALL modals forcefully
+        const modals = document.querySelectorAll('body > div');
+        modals.forEach(modal => {
+            if (modal.style.position === 'fixed' &&
+                (modal.style.backgroundColor === 'rgba(0, 0, 0, 0.7)' || modal.style.backgroundColor === '')) {
+                console.log('Removing modal');
+                modal.remove();
+            }
+        });
+        
+        // 2. FORCE redirect to messages section - MANUAL WAY
+        console.log('Redirecting to messages section');
+        
+        // Hide all sections
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Show messages section
+        const messagesSection = document.getElementById('messages');
+        if (messagesSection) {
+            messagesSection.classList.add('active');
+            console.log('Messages section activated');
+        } else {
+            console.error('Messages section not found!');
+        }
+        
+        // 3. Update navigation manually
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        const messagesNav = document.querySelector('[data-section="messages"]');
+        if (messagesNav) {
+            messagesNav.classList.add('active');
+            console.log('Navigation updated to messages');
+        }
+        
+        // 4. Use the existing startConversation function
+        console.log('Calling startConversation function');
+        if (typeof startConversation === 'function') {
+            // Small delay to ensure UI is updated
+            setTimeout(() => {
+                startConversation(otherUserId);
+            }, 100);
+        } else {
+            console.error('startConversation function not found!');
+            showNotification('Error: Cannot start conversation', 'error');
+        }
+        
+        showNotification('Redirecting to messages...', 'success');
+        
+    } catch (error) {
+        console.error('Error in startDirectMessage:', error);
+        showNotification('Error: ' + error.message, 'error');
+    }
+}
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
