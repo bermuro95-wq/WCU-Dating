@@ -6302,6 +6302,73 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     
+     
+     
+     
+// Fix for double texting issue - Replace the existing send message event handler
+function fixDoubleTexting() {
+    // Remove all existing event listeners from the send button
+    const sendButton = document.getElementById('sendMessageBtn');
+    const newSendButton = sendButton.cloneNode(true);
+    sendButton.parentNode.replaceChild(newSendButton, sendButton);
+    
+    // Add a single event listener to the new button
+    document.getElementById('sendMessageBtn').addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const chatInput = document.getElementById('chatInput');
+        const messageInput = document.getElementById('messageInput');
+        const conversationId = chatInput.dataset.conversationId;
+        const otherUserId = chatInput.dataset.otherUserId;
+        const messageText = messageInput.value.trim();
+        
+        if (!messageText || !conversationId) return;
+        
+        // Prevent multiple rapid clicks
+        if (this.disabled) return;
+        this.disabled = true;
+        
+        try {
+            // Add message to conversation
+            const messageData = {
+                text: messageText,
+                senderId: currentUser.uid,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            await db.collection('conversations')
+                .doc(conversationId)
+                .collection('messages')
+                .add(messageData);
+            
+            // Update conversation last message and timestamp
+            await db.collection('conversations')
+                .doc(conversationId)
+                .update({
+                    lastMessage: messageText,
+                    lastMessageSender: currentUser.uid,
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            
+            // Clear input
+            messageInput.value = '';
+            
+        } catch (error) {
+            console.error('Error sending message:', error);
+            showNotification('Error sending message', 'error');
+        } finally {
+            // Re-enable button after a short delay
+            setTimeout(() => {
+                this.disabled = false;
+            }, 500);
+        }
+    });
+}
+
+// Call this function to fix the double texting issue
+fixDoubleTexting();
+     
     
     
     
@@ -6313,6 +6380,272 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+// Add green notification indicator to Messages navigation
+function setupMessageNotificationIndicator() {
+    // Create notification badge element
+    const messagesNav = document.getElementById('messagesNav');
+    if (!messagesNav.querySelector('.nav-notification-badge')) {
+        const notificationBadge = document.createElement('span');
+        notificationBadge.className = 'nav-notification-badge';
+        notificationBadge.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background-color: #22C55E;
+            border-radius: 50%;
+            display: none;
+        `;
+        messagesNav.style.position = 'relative';
+        messagesNav.appendChild(notificationBadge);
+    }
+}
+
+// Check for unread messages and update notification indicator
+async function updateMessageNotificationIndicator() {
+    if (!currentUser) return;
+    
+    try {
+        const conversationsSnapshot = await db.collection('conversations')
+            .where('participants', 'array-contains', currentUser.uid)
+            .get();
+        
+        let totalUnreadMessages = 0;
+        
+        // Check each conversation for unread messages
+        for (const doc of conversationsSnapshot.docs) {
+            const conversation = doc.data();
+            const otherUserId = conversation.participants.find(uid => uid !== currentUser.uid);
+            
+            if (otherUserId) {
+                const unreadCount = await getUnreadCount(doc.id, otherUserId);
+                totalUnreadMessages += unreadCount;
+            }
+        }
+        
+        // Update notification badge
+        const notificationBadge = document.querySelector('#messagesNav .nav-notification-badge');
+        if (notificationBadge) {
+            if (totalUnreadMessages > 0) {
+                notificationBadge.style.display = 'block';
+                // Optional: Add pulse animation for new messages
+                notificationBadge.style.animation = 'pulse 2s infinite';
+            } else {
+                notificationBadge.style.display = 'none';
+                notificationBadge.style.animation = 'none';
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error updating message notification indicator:', error);
+    }
+}
+
+// Get unread message count for a conversation
+async function getUnreadCount(conversationId, otherUserId) {
+    try {
+        const unreadMessages = await db.collection('conversations')
+            .doc(conversationId)
+            .collection('messages')
+            .where('senderId', '==', otherUserId)
+            .where('status', 'in', ['sent', 'delivered'])
+            .get();
+        
+        return unreadMessages.size;
+    } catch (error) {
+        console.error('Error getting unread count:', error);
+        return 0;
+    }
+}
+
+// Mark messages as read when messages section is opened
+function setupMessageReadTracker() {
+    const originalShowSection = window.showSection;
+    window.showSection = function(sectionId) {
+        originalShowSection(sectionId);
+        
+        if (sectionId === 'messages') {
+            // When messages section is opened, mark all as read
+            markAllMessagesAsRead();
+        }
+    };
+}
+
+// Mark all messages as read across all conversations
+async function markAllMessagesAsRead() {
+    if (!currentUser) return;
+    
+    try {
+        const conversationsSnapshot = await db.collection('conversations')
+            .where('participants', 'array-contains', currentUser.uid)
+            .get();
+        
+        for (const doc of conversationsSnapshot.docs) {
+            const conversation = doc.data();
+            const otherUserId = conversation.participants.find(uid => uid !== currentUser.uid);
+            
+            if (otherUserId) {
+                await markMessagesAsRead(doc.id, otherUserId);
+            }
+        }
+        
+        // Update notification indicator after marking as read
+        updateMessageNotificationIndicator();
+        
+    } catch (error) {
+        console.error('Error marking all messages as read:', error);
+    }
+}
+
+// Real-time listener for new messages
+function setupRealTimeMessageListener() {
+    if (!currentUser) return;
+    
+    return db.collection('conversations')
+        .where('participants', 'array-contains', currentUser.uid)
+        .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'modified') {
+                    const conversation = change.doc.data();
+                    
+                    // Check if this is a new message from someone else
+                    if (conversation.lastMessageSender !== currentUser.uid) {
+                        // Update notification indicator
+                        updateMessageNotificationIndicator();
+                    }
+                }
+            });
+        });
+}
+
+// Initialize the message notification system
+function initMessageNotificationSystem() {
+    // Setup notification badge
+    setupMessageNotificationIndicator();
+    
+    // Setup read tracker
+    setupMessageReadTracker();
+    
+    // Setup real-time listener
+    let messageListener = null;
+    
+    if (currentUser) {
+        messageListener = setupRealTimeMessageListener();
+        updateMessageNotificationIndicator();
+    }
+    
+    // Re-setup when auth state changes
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            setTimeout(() => {
+                messageListener = setupRealTimeMessageListener();
+                updateMessageNotificationIndicator();
+            }, 1000);
+        } else {
+            if (messageListener) {
+                messageListener();
+            }
+            // Hide notification badge when logged out
+            const notificationBadge = document.querySelector('#messagesNav .nav-notification-badge');
+            if (notificationBadge) {
+                notificationBadge.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Add CSS styles for the notification indicator
+const notificationStyles = document.createElement('style');
+notificationStyles.textContent = `
+    .nav-notification-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        background-color: #22C55E;
+        border-radius: 50%;
+        display: none;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+    
+    #messagesNav {
+        position: relative;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .nav-notification-badge {
+            top: 5px;
+            right: 5px;
+            width: 6px;
+            height: 6px;
+        }
+    }
+`;
+document.head.appendChild(notificationStyles);
+
+// Initialize the system
+setTimeout(initMessageNotificationSystem, 2000);
+    
+    
+    
+       
+       
+       
        
     
     
