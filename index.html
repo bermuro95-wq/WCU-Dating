@@ -1310,7 +1310,67 @@ footer {
         
         
         
-        
+
+/* Password Toggle Styles */
+.password-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px;
+    z-index: 2;
+}
+
+.password-toggle:hover {
+    color: var(--primary-color);
+}
+
+.password-hint {
+    font-size: 0.8rem;
+    color: var(--muted-text);
+    margin-top: 5px;
+    display: block;
+}
+
+.password-strength {
+    height: 4px;
+    margin-top: 5px;
+    border-radius: 2px;
+    background-color: #e0e0e0;
+    overflow: hidden;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.strength-weak {
+    background-color: var(--error-color);
+    width: 33%;
+}
+
+.strength-medium {
+    background-color: var(--warning-color);
+    width: 66%;
+}
+
+.strength-strong {
+    background-color: var(--success-color);
+    width: 100%;
+}
+
         
         
 
@@ -1431,29 +1491,60 @@ footer {
             </div>
         </section>
 
-        <!-- Login Section -->
-        <section id="login" class="section">
-            <div class="form-container">
-                <h2 class="form-title">Login to Your Account</h2>
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
-                    </div>
-                    <button type="submit" class="btn" style="width: 100%;">
-                        <span id="loginBtnText">Login</span>
-                        <div id="loginSpinner" class="spinner" style="display: none;"></div>
-                    </button>
-                </form>
-                <p style="text-align: center; margin-top: 1.5rem;">
-                    Don't have an account? <a href="#signup" class="nav-link" data-section="signup" style="color: var(--primary-color);">Sign Up now</a>
-                </p>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+<!-- Login Section -->
+<section id="login" class="section">
+    <div class="form-container">
+        <h2 class="form-title">Login to Your Account</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
             </div>
-        </section>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <div class="password-input-container">
+                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                    <button type="button" class="password-toggle" id="loginPasswordToggle">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <span class="password-hint">Hint: Aa@4 (at least 8 characters)</span>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">
+                <span id="loginBtnText">Login</span>
+                <div id="loginSpinner" class="spinner" style="display: none;"></div>
+            </button>
+        </form>
+        <p style="text-align: center; margin-top: 1.5rem;">
+            Don't have an account? <a href="#signup" class="nav-link" data-section="signup" style="color: var(--primary-color);">Sign Up now</a>
+        </p>
+    </div>
+</section>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
         <!-- Sign Up Section -->
         <section id="signup" class="section">
@@ -1608,10 +1699,61 @@ footer {
                         <label for="password">Password</label>
                         <input type="password" id="password" class="form-control" placeholder="Create a password" required>
                     </div>
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
-                    </div>
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+<div class="form-group">
+    <label for="password">Password</label>
+    <div class="password-input-container">
+        <input type="password" id="password" class="form-control" placeholder="Create a password" required>
+        <button type="button" class="password-toggle" id="passwordToggle">
+            <i class="fas fa-eye"></i>
+        </button>
+    </div>
+    <span class="password-hint">Hint: Aa@4 (at least 8 characters)</span>
+    <div class="password-strength">
+        <div class="strength-bar" id="passwordStrength"></div>
+    </div>
+</div>
+<div class="form-group">
+    <label for="confirmPassword">Confirm Password</label>
+    <div class="password-input-container">
+        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
+        <button type="button" class="password-toggle" id="confirmPasswordToggle">
+            <i class="fas fa-eye"></i>
+        </button>
+    </div>
+</div>
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             
+
+             
+             
+             
+             
+             
+             
+             
+             
                     <button type="submit" class="btn" style="width: 100%;">
                         <span id="signupBtnText">Register</span>
                         <div id="signupSpinner" class="spinner" style="display: none;"></div>
@@ -6657,6 +6799,159 @@ setTimeout(initMessageNotificationSystem, 2000);
 
     
 
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+// Password Toggle Functionality
+function setupPasswordToggles() {
+    // Login password toggle
+    const loginPasswordToggle = document.getElementById('loginPasswordToggle');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    
+    if (loginPasswordToggle && loginPasswordInput) {
+        loginPasswordToggle.addEventListener('click', function() {
+            togglePasswordVisibility(loginPasswordInput, loginPasswordToggle);
+        });
+    }
+    
+    // Signup password toggle
+    const passwordToggle = document.getElementById('passwordToggle');
+    const passwordInput = document.getElementById('password');
+    
+    if (passwordToggle && passwordInput) {
+        passwordToggle.addEventListener('click', function() {
+            togglePasswordVisibility(passwordInput, passwordToggle);
+        });
+        
+        // Add password strength indicator
+        passwordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+    }
+    
+    // Confirm password toggle
+    const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    
+    if (confirmPasswordToggle && confirmPasswordInput) {
+        confirmPasswordToggle.addEventListener('click', function() {
+            togglePasswordVisibility(confirmPasswordInput, confirmPasswordToggle);
+        });
+    }
+}
+
+// Toggle password visibility
+function togglePasswordVisibility(inputElement, toggleButton) {
+    if (inputElement.type === 'password') {
+        inputElement.type = 'text';
+        toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i>';
+    } else {
+        inputElement.type = 'password';
+        toggleButton.innerHTML = '<i class="fas fa-eye"></i>';
+    }
+}
+
+// Check password strength
+function checkPasswordStrength(password) {
+    const strengthBar = document.getElementById('passwordStrength');
+    if (!strengthBar) return;
+    
+    // Reset classes
+    strengthBar.className = 'strength-bar';
+    
+    if (password.length === 0) {
+        strengthBar.style.width = '0%';
+        return;
+    }
+    
+    let strength = 0;
+    
+    // Length check
+    if (password.length >= 8) strength += 1;
+    
+    // Contains lowercase letter
+    if (/[a-z]/.test(password)) strength += 1;
+    
+    // Contains uppercase letter
+    if (/[A-Z]/.test(password)) strength += 1;
+    
+    // Contains number
+    if (/[0-9]/.test(password)) strength += 1;
+    
+    // Contains special character
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    
+    // Update strength bar
+    if (strength <= 2) {
+        strengthBar.classList.add('strength-weak');
+    } else if (strength <= 4) {
+        strengthBar.classList.add('strength-medium');
+    } else {
+        strengthBar.classList.add('strength-strong');
+    }
+}
+
+// Initialize password toggles when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setupPasswordToggles();
+});
+
+// Also initialize when login or signup sections are shown
+const originalShowSection = window.showSection;
+window.showSection = function(sectionId) {
+    originalShowSection(sectionId);
+    
+    // Initialize password toggles when login or signup sections are shown
+    if (sectionId === 'login' || sectionId === 'signup') {
+        setTimeout(setupPasswordToggles, 100);
+    }
+};
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
      
      
      
