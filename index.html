@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WCU Dating - Connect with Fellow Students</title>
+    <meta name="description" content="Premium dating & social platform exclusively for Wachemo University students. Connect, chat, and build meaningful relationships.">
+    <link rel="icon" href="logo.png" type="image/png">
+    <title>WCU Dating | Wachemo University - Connect & Match</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Add Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -25,21 +27,31 @@
         
         
 :root {
-  --primary-color: #2563EB;       /* Professional Royal Blue */
-  --primary-light: #60A5FA;      /* Soft Sky Blue */
-  --primary-dark: #1E40AF;       /* Deep Blue */
+  /* Modern Dating Palette - Premium & Romantic */
+  --primary-color: #7C3AED;
+  --primary-light: #A78BFA;
+  --primary-dark: #5B21B6;
+  --accent-color: #EC4899;
+  --accent-light: #F9A8D4;
+  --secondary-color: #06B6D4;
+  --success-color: #10B981;
+  --warning-color: #F59E0B;
+  --error-color: #EF4444;
 
-  --accent-color: pink;       /* Modern Coral Pink (romance hint) */
-  --secondary-color: #10B981;    /* Emerald Green for freshness */
+  --background-color: #F8FAFC;
+  --bg-light: #F8FAFC;
+  --card-color: #FFFFFF;
+  --text-color: #0F172A;
+  --text-dark: #0F172A;
+  --text-light: #FFFFFF;
+  --muted-text: #64748B;
 
-  --background-color: #F9FAFB;   /* Clean Light Gray background */
-  --card-color: #FFFFFF;         /* White cards/sections */
-  --text-color: #111827;         /* Professional Dark Gray text */
-  --muted-text: #6B7280;         /* Muted gray for less important text */
-
-  --success-color: #22C55E;      /* Success Green */
-  --warning-color: #FACC15;      /* Gold/Amber */
-  --error-color: #EF4444;        /* Alert Red */
+  --shadow: 0 4px 20px rgba(124, 58, 237, 0.12);
+  --shadow-lg: 0 10px 40px rgba(124, 58, 237, 0.18);
+  --border-radius: 16px;
+  --border-radius-sm: 10px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass: rgba(255, 255, 255, 0.75);
 }
 
        
@@ -48,28 +60,32 @@
          
         
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600;700&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: var(--bg-light);
+            background: linear-gradient(135deg, #F8FAFC 0%, #F1E7FF 45%, #FDF2F8 100%);
+            background-attachment: fixed;
             color: var(--text-dark);
             line-height: 1.6;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
         }
 
-        /* Header Styles */
+        /* Header Styles - Premium Gradient */
         header {
-            background: linear-gradient(to right, var(--primary-dark), var(--primary-color));
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 55%, var(--accent-color) 100%);
             color: var(--text-light);
-            padding: 1rem;
+            padding: 0.85rem 1rem;
             position: sticky;
             top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow);
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
         }
 
         .header-container {
@@ -83,36 +99,52 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+        }
+
+        .logo img.wcu-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #fff;
+            padding: 3px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.25);
         }
 
         .logo i {
-            color: #ff4081;
+            color: #F9A8D4;
             font-size: 1.8rem;
         }
 
         .logo h1 {
-            font-size: 1.5rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         /* Navigation */
         nav ul {
             display: flex;
             list-style: none;
-            gap: 1.5rem;
+            gap: 0.35rem;
+            align-items: center;
         }
 
         nav a {
             color: var(--text-light);
             text-decoration: none;
             font-weight: 500;
-            padding: 0.5rem;
-            border-radius: var(--border-radius);
+            font-size: 0.93rem;
+            padding: 0.5rem 0.95rem;
+            border-radius: 999px;
             transition: var(--transition);
         }
 
         nav a:hover, nav a.active {
-            background-color: rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.22);
+            transform: translateY(-1px);
         }
 
         .menu-toggle {
@@ -146,15 +178,75 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Home Section */
+        /* Home Section - Premium Hero */
         .hero {
             text-align: center;
-            padding: 3rem 1rem;
-            background: linear-gradient(rgba(106, 27, 154, 0.9), rgba(106, 27, 154, 0.8)), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%236a1b9a"/><text x="50%" y="50%" font-size="20" text-anchor="middle" fill="%23ffffff" font-family="Arial">WCU</text></svg>');
-            background-size: cover;
-            border-radius: var(--border-radius);
+            padding: 4.2rem 1.5rem;
+            background: linear-gradient(135deg, rgba(91,33,182,0.93) 0%, rgba(124,58,237,0.9) 45%, rgba(236,72,153,0.88) 100%),
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="1.5" fill="%23fff" opacity="0.12"/></svg>');
+            background-size: cover, 50px 50px;
+            border-radius: 24px;
             color: var(--text-light);
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            max-width: 560px;
+            margin: 0 auto 1.8rem;
+            opacity: 0.95;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.8rem;
+            background: linear-gradient(135deg, var(--accent-color), #DB2777);
+            color: white;
+            border: none;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.85);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.15);
+            box-shadow: none;
         }
 
         .hero h2 {
@@ -468,37 +560,40 @@ textarea.form-control {
 
 
 
-/* ===== FACEBOOK-STYLE MESSAGES LAYOUT ===== */
+/* ===== PREMIUM REAL CHAT MESSAGING LAYOUT ===== */
 .messages-container {
   display: flex;
-  height: 70vh;
-  min-height: 500px;
-  max-height: 700px;
-  background: #f0f2f5;
-  border-radius: 10px;
+  height: 75vh;
+  min-height: 520px;
+  max-height: 780px;
+  background: #fff;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(124, 58, 237, 0.08);
 }
 
 .conversations-list {
-  width: 350px;
-  background: white;
-  border-right: 1px solid #e4e6eb;
+  width: 340px;
+  background: linear-gradient(180deg, #FAF5FF 0%, #FFFFFF 100%);
+  border-right: 1px solid #E9D5FF;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .conversations-header {
-  padding: 16px;
-  border-bottom: 1px solid #e4e6eb;
-  background: white;
+  padding: 18px 20px;
+  border-bottom: 1px solid #E9D5FF;
+  background: linear-gradient(90deg, #F5F3FF, #FDF2F8);
 }
 
 .conversations-header h3 {
   margin: 0;
-  color: #1c1e21;
-  font-size: 1.5rem;
+  color: var(--primary-dark);
+  font-size: 1.35rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
 }
 
 .conversations-scroll {
@@ -623,24 +718,35 @@ textarea.form-control {
 }
 
 .message {
-  max-width: 65%;
-  padding: 8px 12px;
+  max-width: 70%;
+  padding: 10px 14px;
   border-radius: 18px;
   word-wrap: break-word;
   position: relative;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  animation: msgIn 0.25s ease;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .message.received {
-  background: white;
+  background: #FFFFFF;
+  color: #1E293B;
   align-self: flex-start;
-  border-bottom-left-radius: 4px;
+  border-bottom-left-radius: 5px;
+  border: 1px solid #F1E7FF;
 }
 
 .message.sent {
-  background: #0084ff;
+  background: linear-gradient(135deg, #7C3AED, #EC4899);
   color: white;
   align-self: flex-end;
-  border-bottom-right-radius: 4px;
+  border-bottom-right-radius: 5px;
 }
 
 .message-time {
@@ -651,51 +757,57 @@ textarea.form-control {
 }
 
 .chat-input-container {
-  padding: 16px;
-  background: white;
-  border-top: 1px solid #e4e6eb;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #FFFFFF, #FAF5FF);
+  border-top: 1px solid #E9D5FF;
 }
 
 .chat-input {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 .chat-input input {
   flex: 1;
-  padding: 12px 16px;
-  border: 1px solid #e4e6eb;
-  border-radius: 20px;
+  padding: 13px 18px;
+  border: 1.5px solid #E9D5FF;
+  border-radius: 999px;
   font-size: 15px;
-  background: #f0f2f5;
+  background: #F8FAFC;
   outline: none;
+  transition: var(--transition);
+  font-family: inherit;
 }
 
 .chat-input input:focus {
-  border-color: #0084ff;
+  border-color: var(--primary-color);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 .chat-input button {
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: #0084ff;
+  background: linear-gradient(135deg, #7C3AED, #EC4899);
   color: white;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
 }
 
 .chat-input button:hover {
-  background: #0073e6;
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(236, 72, 153, 0.45);
 }
 
 .chat-input button i {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 /* Empty States */
@@ -1420,6 +1532,7 @@ footer {
     <header>
         <div class="header-container">
             <div class="logo">
+                <img src="logo.png" alt="Wachemo University Logo" class="wcu-logo" onerror="this.style.display='none'">
                 <i class="fas fa-heart"></i>
                 <h1>WCU Dating</h1>
             </div>
@@ -1922,7 +2035,11 @@ footer {
 <div class="messages-container">
     <div class="conversations-list">
         <div class="conversations-header">
-            <h3>Messages</h3>
+            <h3><i class="fas fa-comments"></i> Messages</h3>
+            <div class="conv-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="convSearchInput" placeholder="Search conversations..." autocomplete="off">
+            </div>
         </div>
         <div class="conversations-scroll" id="conversationsList">
             <div class="spinner"></div>
@@ -1931,12 +2048,28 @@ footer {
     
     <div class="chat-window">
         <div class="chat-header" id="chatHeader">
-            <div class="chat-user-avatar">
-                <i class="fas fa-user"></i>
+            <div class="chat-header-left">
+                <button class="chat-back-btn" id="chatBackBtn" title="Back to chats"><i class="fas fa-arrow-left"></i></button>
+                <div class="chat-user-avatar" id="chatHeaderAvatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="chat-user-info">
+                    <div class="chat-user-name" id="chatHeaderName">Select a conversation</div>
+                    <div class="chat-user-status" id="chatHeaderStatus"></div>
+                </div>
             </div>
-            <div class="chat-user-info">
-                <div class="chat-user-name">Select a conversation</div>
-                <div class="chat-user-status"></div>
+            <div class="chat-header-actions" id="chatHeaderActions" style="display:none;">
+                <button class="chat-action-btn" id="chatInfoBtn" title="View profile"><i class="fas fa-info-circle"></i></button>
+                <div class="chat-menu-wrap">
+                    <button class="chat-action-btn" id="chatMenuBtn" title="More options"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="chat-dropdown" id="chatDropdown">
+                        <button class="chat-dropdown-item" id="btnMuteChat"><i class="fas fa-bell-slash"></i> Mute notifications</button>
+                        <button class="chat-dropdown-item" id="btnClearChat"><i class="fas fa-broom"></i> Clear chat</button>
+                        <button class="chat-dropdown-item" id="btnDeleteConv"><i class="fas fa-trash-alt"></i> Delete conversation</button>
+                        <button class="chat-dropdown-item danger" id="btnBlockUser"><i class="fas fa-ban"></i> Block user</button>
+                        <button class="chat-dropdown-item danger" id="btnReportUser"><i class="fas fa-flag"></i> Report user</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1948,13 +2081,38 @@ footer {
             </div>
         </div>
         
+        <div class="chat-blocked-banner" id="chatBlockedBanner" style="display:none;">
+            <i class="fas fa-ban"></i>
+            <span>You have blocked this user. Unblock to continue chatting.</span>
+            <button id="btnUnblockFromChat" class="btn-unblock">Unblock</button>
+        </div>
+        
         <div class="chat-input-container" id="chatInput" style="display: none;">
             <div class="chat-input">
-                <input type="text" id="messageInput" placeholder="Type a message...">
-                <button id="sendMessageBtn">
+                <button class="chat-attach-btn" id="chatEmojiBtn" title="Emoji"><i class="far fa-smile"></i></button>
+                <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+                <button id="sendMessageBtn" title="Send">
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Message context menu -->
+<div class="msg-context-menu" id="msgContextMenu" style="display:none;">
+    <button data-action="copy"><i class="fas fa-copy"></i> Copy</button>
+    <button data-action="delete"><i class="fas fa-trash"></i> Delete for me</button>
+</div>
+
+<!-- Confirm modal -->
+<div class="chat-modal-overlay" id="chatModalOverlay" style="display:none;">
+    <div class="chat-modal">
+        <h3 id="chatModalTitle">Confirm</h3>
+        <p id="chatModalText">Are you sure?</p>
+        <div class="chat-modal-actions">
+            <button class="btn-modal-cancel" id="chatModalCancel">Cancel</button>
+            <button class="btn-modal-confirm" id="chatModalConfirm">Confirm</button>
         </div>
     </div>
 </div>
@@ -4710,7 +4868,405 @@ setTimeout(initMessageRequestsBar, 2000);
               font-size: 14px !important;
             }
           }
-        </style>
+        
+/* ===== EXTRA POLISH - Advanced Dating UI ===== */
+.card, .dashboard-cards .card, .form-container, .profile-view {
+  background: var(--card-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(124, 58, 237, 0.06);
+  transition: var(--transition);
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.form-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.form-control {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid #E2E8F0;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.95rem;
+  transition: var(--transition);
+  background: #F8FAFC;
+  font-family: inherit;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  background: #fff;
+}
+.btn-primary, button[type="submit"] {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+}
+.btn-primary:hover, button[type="submit"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(236, 72, 153, 0.4);
+}
+.conversation:hover {
+  background: linear-gradient(90deg, #F5F3FF, #FDF2F8) !important;
+}
+.conversation.active {
+  background: linear-gradient(90deg, #EDE9FE, #FCE7F3) !important;
+  border-left: 3px solid var(--primary-color);
+}
+.chat-header {
+  background: linear-gradient(90deg, #F5F3FF, #FDF2F8) !important;
+  border-bottom: 1px solid #E9D5FF !important;
+}
+.chat-user-status.online {
+  color: var(--success-color) !important;
+  font-weight: 600;
+}
+.online-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--success-color);
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+}
+.profile-img, .conversation-img, .chat-user-avatar {
+  border: 2px solid var(--primary-light) !important;
+}
+.notification {
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+/* Smooth scrollbar for chat */
+.chat-messages::-webkit-scrollbar,
+.conversations-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-messages::-webkit-scrollbar-thumb,
+.conversations-scroll::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 10px;
+}
+
+/* ========== ADVANCED FACEBOOK-STYLE CHAT UI ========== */
+.conversations-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.conversations-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.conv-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.conv-search-wrap i {
+  position: absolute;
+  left: 12px;
+  color: #94A3B8;
+  font-size: 0.85rem;
+}
+.conv-search-wrap input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border: 1.5px solid #E9D5FF;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.88rem;
+  outline: none;
+  transition: var(--transition);
+  font-family: inherit;
+}
+.conv-search-wrap input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
+
+.chat-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px !important;
+  gap: 10px;
+}
+.chat-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.chat-back-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+}
+.chat-back-btn:hover { background: #F5F3FF; }
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.chat-action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--primary-dark);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-action-btn:hover {
+  background: #F5F3FF;
+  color: var(--accent-color);
+}
+.chat-menu-wrap { position: relative; }
+.chat-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  border: 1px solid #E9D5FF;
+  z-index: 200;
+  overflow: hidden;
+  padding: 6px 0;
+}
+.chat-dropdown.show { display: block; animation: fadeIn 0.15s ease; }
+.chat-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.92rem;
+  color: #1E293B;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.chat-dropdown-item:hover { background: #F8FAFC; }
+.chat-dropdown-item.danger { color: #DC2626; }
+.chat-dropdown-item.danger:hover { background: #FEF2F2; }
+.chat-dropdown-item i { width: 18px; text-align: center; }
+
+.chat-blocked-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border-top: 1px solid #FECACA;
+  color: #991B1B;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+.btn-unblock {
+  margin-left: auto;
+  background: #DC2626;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.btn-unblock:hover { background: #B91C1C; }
+
+.chat-attach-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--primary-color);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.chat-attach-btn:hover { background: #F5F3FF; color: var(--accent-color); }
+
+/* Unread badge */
+.unread-badge {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  margin-left: 6px;
+}
+.conversation.blocked-conv {
+  opacity: 0.55;
+}
+.conversation.blocked-conv .conversation-name::after {
+  content: " (Blocked)";
+  font-size: 0.75rem;
+  color: #DC2626;
+  font-weight: 500;
+}
+
+/* Message context menu */
+.msg-context-menu {
+  position: fixed;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+  border: 1px solid #E2E8F0;
+  z-index: 3000;
+  overflow: hidden;
+  min-width: 160px;
+  padding: 4px 0;
+}
+.msg-context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: #1E293B;
+}
+.msg-context-menu button:hover { background: #F1F5F9; }
+.msg-context-menu button[data-action="delete"] { color: #DC2626; }
+
+/* Confirm modal */
+.chat-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+.chat-modal {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.5rem 1.6rem;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  animation: fadeIn 0.2s ease;
+}
+.chat-modal h3 {
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 0.5rem;
+  color: #0F172A;
+}
+.chat-modal p {
+  color: #64748B;
+  margin-bottom: 1.4rem;
+  font-size: 0.95rem;
+}
+.chat-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.btn-modal-cancel {
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 1.5px solid #E2E8F0;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+}
+.btn-modal-confirm {
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #7C3AED, #EC4899);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+}
+.btn-modal-confirm.danger {
+  background: linear-gradient(135deg, #DC2626, #EF4444);
+}
+
+/* Message long-press / right-click affordance */
+.message {
+  cursor: context-menu;
+  user-select: text;
+}
+.message.deleted-msg {
+  opacity: 0.5;
+  font-style: italic;
+}
+.message.deleted-msg .message-content p {
+  color: #94A3B8 !important;
+}
+
+/* Online green dot on avatar */
+.chat-user-avatar, .conversation-img {
+  position: relative;
+}
+.status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: #94A3B8;
+}
+.status-dot.online { background: #10B981; }
+
+@media (max-width: 768px) {
+  .chat-back-btn { display: flex !important; }
+  .conversations-list.mobile-hide { display: none !important; }
+  .chat-window.mobile-full { width: 100% !important; }
+}
+</style>
       `;
       
       document.body.insertAdjacentHTML('beforeend', navButtonsHTML);
@@ -7638,6 +8194,740 @@ console.log('Online user notifications system loaded successfully!');
      
      
      
+
+
+/* ============================================================
+   ADVANCED FACEBOOK-STYLE CHAT SYSTEM
+   Block / Unblock / Delete conversation / Clear chat / Report
+   Unread badges / Search / Message delete / Context menu
+   ============================================================ */
+(function AdvancedChatSystem() {
+  'use strict';
+
+  let activeConversationId = null;
+  let activeOtherUserId = null;
+  let chatUnsub = null;
+  let contextMessageId = null;
+  let pendingConfirmAction = null;
+
+  // ---------- Helpers ----------
+  function escapeHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function showChatModal(title, message, confirmText, isDanger, onConfirm) {
+    const overlay = document.getElementById('chatModalOverlay');
+    document.getElementById('chatModalTitle').textContent = title;
+    document.getElementById('chatModalText').textContent = message;
+    const confBtn = document.getElementById('chatModalConfirm');
+    confBtn.textContent = confirmText || 'Confirm';
+    confBtn.className = 'btn-modal-confirm' + (isDanger ? ' danger' : '');
+    pendingConfirmAction = onConfirm;
+    overlay.style.display = 'flex';
+  }
+
+  function hideChatModal() {
+    document.getElementById('chatModalOverlay').style.display = 'none';
+    pendingConfirmAction = null;
+  }
+
+  async function getBlockedUsers() {
+    if (!currentUser) return [];
+    try {
+      const doc = await db.collection('users').doc(currentUser.uid).get();
+      const data = doc.data() || {};
+      return data.blockedUsers || [];
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  }
+
+  async function isUserBlocked(uid) {
+    const list = await getBlockedUsers();
+    return list.includes(uid);
+  }
+
+  async function setBlockedUsers(list) {
+    await db.collection('users').doc(currentUser.uid).update({
+      blockedUsers: list
+    });
+  }
+
+  // ---------- Block / Unblock ----------
+  async function blockUser(otherUserId) {
+    if (!currentUser || !otherUserId) return;
+    try {
+      const list = await getBlockedUsers();
+      if (!list.includes(otherUserId)) {
+        list.push(otherUserId);
+        await setBlockedUsers(list);
+      }
+      // Also store reverse flag for the other user optionally
+      showNotification('User blocked successfully', 'success');
+      updateBlockedUI(true);
+      if (typeof loadConversations === 'function') loadConversations();
+    } catch (e) {
+      console.error('Block error:', e);
+      showNotification('Failed to block user', 'error');
+    }
+  }
+
+  async function unblockUser(otherUserId) {
+    if (!currentUser || !otherUserId) return;
+    try {
+      let list = await getBlockedUsers();
+      list = list.filter(id => id !== otherUserId);
+      await setBlockedUsers(list);
+      showNotification('User unblocked', 'success');
+      updateBlockedUI(false);
+      if (typeof loadConversations === 'function') loadConversations();
+    } catch (e) {
+      console.error('Unblock error:', e);
+      showNotification('Failed to unblock user', 'error');
+    }
+  }
+
+  function updateBlockedUI(blocked) {
+    const banner = document.getElementById('chatBlockedBanner');
+    const input = document.getElementById('chatInput');
+    const blockBtn = document.getElementById('btnBlockUser');
+    if (blocked) {
+      if (banner) banner.style.display = 'flex';
+      if (input) input.style.display = 'none';
+      if (blockBtn) {
+        blockBtn.innerHTML = '<i class="fas fa-unlock"></i> Unblock user';
+        blockBtn.classList.remove('danger');
+      }
+    } else {
+      if (banner) banner.style.display = 'none';
+      if (input && activeConversationId) input.style.display = 'flex';
+      if (blockBtn) {
+        blockBtn.innerHTML = '<i class="fas fa-ban"></i> Block user';
+        blockBtn.classList.add('danger');
+      }
+    }
+  }
+
+  // ---------- Delete conversation ----------
+  async function deleteConversation(conversationId) {
+    if (!currentUser || !conversationId) return;
+    try {
+      // Soft-delete for current user (hide from their list)
+      const convRef = db.collection('conversations').doc(conversationId);
+      const convDoc = await convRef.get();
+      if (!convDoc.exists) return;
+      const data = convDoc.data();
+      const deletedFor = data.deletedFor || [];
+      if (!deletedFor.includes(currentUser.uid)) {
+        deletedFor.push(currentUser.uid);
+        await convRef.update({ deletedFor });
+      }
+      // Clear active chat
+      resetChatWindow();
+      showNotification('Conversation deleted', 'success');
+      if (typeof loadConversations === 'function') loadConversations();
+    } catch (e) {
+      console.error('Delete conversation error:', e);
+      showNotification('Failed to delete conversation', 'error');
+    }
+  }
+
+  // ---------- Clear chat (delete all messages for me) ----------
+  async function clearChat(conversationId) {
+    if (!currentUser || !conversationId) return;
+    try {
+      const snap = await db.collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .get();
+      const batch = db.batch();
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        const deletedFor = data.deletedFor || [];
+        if (!deletedFor.includes(currentUser.uid)) {
+          deletedFor.push(currentUser.uid);
+          batch.update(doc.ref, { deletedFor });
+        }
+      });
+      await batch.commit();
+      showNotification('Chat cleared', 'success');
+      // Reload messages
+      if (activeConversationId === conversationId && activeOtherUserId) {
+        advancedLoadConversation(conversationId, activeOtherUserId);
+      }
+    } catch (e) {
+      console.error('Clear chat error:', e);
+      showNotification('Failed to clear chat', 'error');
+    }
+  }
+
+  // ---------- Delete single message for me ----------
+  async function deleteMessageForMe(conversationId, messageId) {
+    try {
+      const ref = db.collection('conversations').doc(conversationId)
+        .collection('messages').doc(messageId);
+      const doc = await ref.get();
+      if (!doc.exists) return;
+      const data = doc.data();
+      const deletedFor = data.deletedFor || [];
+      if (!deletedFor.includes(currentUser.uid)) {
+        deletedFor.push(currentUser.uid);
+        await ref.update({ deletedFor });
+      }
+      const el = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (el) {
+        el.classList.add('deleted-msg');
+        el.querySelector('.message-content p').textContent = 'You deleted this message';
+      }
+    } catch (e) {
+      console.error('Delete message error:', e);
+      showNotification('Failed to delete message', 'error');
+    }
+  }
+
+  // ---------- Report user ----------
+  async function reportUser(otherUserId) {
+    if (!currentUser || !otherUserId) return;
+    try {
+      await db.collection('reports').add({
+        reporterId: currentUser.uid,
+        reportedUserId: otherUserId,
+        conversationId: activeConversationId || null,
+        reason: 'User report from chat',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'pending'
+      });
+      showNotification('Report submitted. Thank you.', 'success');
+    } catch (e) {
+      console.error('Report error:', e);
+      showNotification('Failed to submit report', 'error');
+    }
+  }
+
+  // ---------- Reset chat window ----------
+  function resetChatWindow() {
+    activeConversationId = null;
+    activeOtherUserId = null;
+    if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+    const header = document.getElementById('chatHeader');
+    const nameEl = document.getElementById('chatHeaderName');
+    const statusEl = document.getElementById('chatHeaderStatus');
+    const avatarEl = document.getElementById('chatHeaderAvatar');
+    const actions = document.getElementById('chatHeaderActions');
+    const messages = document.getElementById('chatMessages');
+    const input = document.getElementById('chatInput');
+    const banner = document.getElementById('chatBlockedBanner');
+    if (nameEl) nameEl.textContent = 'Select a conversation';
+    if (statusEl) statusEl.textContent = '';
+    if (avatarEl) avatarEl.innerHTML = '<i class="fas fa-user"></i>';
+    if (actions) actions.style.display = 'none';
+    if (input) input.style.display = 'none';
+    if (banner) banner.style.display = 'none';
+    if (messages) {
+      messages.innerHTML = `
+        <div class="empty-chat-state">
+          <i class="fas fa-comments"></i>
+          <h3>No conversation selected</h3>
+          <p>Choose a conversation from the list to start messaging</p>
+        </div>`;
+    }
+    document.querySelectorAll('.conversation.active').forEach(el => el.classList.remove('active'));
+  }
+
+  // ---------- Advanced display message ----------
+  function advancedDisplayMessage(message, messageId) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    // Hide messages deleted for current user
+    if (message.deletedFor && message.deletedFor.includes(currentUser.uid)) {
+      return;
+    }
+
+    const isSent = message.senderId === currentUser.uid;
+    const el = document.createElement('div');
+    el.className = `message ${isSent ? 'sent' : 'received'}`;
+    el.dataset.messageId = messageId;
+
+    const time = message.timestamp ? message.timestamp.toDate() : new Date();
+    const timeString = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    el.innerHTML = `
+      <div class="message-content">
+        <p>${escapeHtml(message.text)}</p>
+        <div class="message-time">${timeString}</div>
+      </div>`;
+
+    // Context menu on right-click / long-press
+    el.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      contextMessageId = messageId;
+      const menu = document.getElementById('msgContextMenu');
+      menu.style.display = 'block';
+      menu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+      menu.style.top = Math.min(e.clientY, window.innerHeight - 100) + 'px';
+    });
+
+    chatMessages.appendChild(el);
+  }
+
+  // ---------- Advanced load conversation ----------
+  async function advancedLoadConversation(conversationId, otherUserId) {
+    if (!currentUser) return;
+    activeConversationId = conversationId;
+    activeOtherUserId = otherUserId;
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const actions = document.getElementById('chatHeaderActions');
+    const nameEl = document.getElementById('chatHeaderName');
+    const statusEl = document.getElementById('chatHeaderStatus');
+    const avatarEl = document.getElementById('chatHeaderAvatar');
+
+    if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+
+    chatMessages.innerHTML = '<div class="spinner"></div>';
+    if (chatInput) chatInput.style.display = 'none';
+
+    try {
+      const otherUserDoc = await db.collection('users').doc(otherUserId).get();
+      if (!otherUserDoc.exists) {
+        chatMessages.innerHTML = '<p style="text-align:center;padding:2rem;">User not found.</p>';
+        return;
+      }
+      const otherUser = otherUserDoc.data();
+
+      if (nameEl) nameEl.textContent = otherUser.fullName || 'Student';
+      if (statusEl) {
+        statusEl.innerHTML = otherUser.isOnline
+          ? '<span class="online-dot"></span> Online'
+          : 'Offline';
+        statusEl.className = 'chat-user-status' + (otherUser.isOnline ? ' online' : '');
+      }
+      if (avatarEl) {
+        if (otherUser.photoURL) {
+          avatarEl.innerHTML = `<img src="${escapeHtml(otherUser.photoURL)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-user\\'></i>'">`;
+        } else {
+          avatarEl.innerHTML = '<i class="fas fa-user"></i>';
+        }
+      }
+      if (actions) actions.style.display = 'flex';
+
+      // Check blocked
+      const blocked = await isUserBlocked(otherUserId);
+      updateBlockedUI(blocked);
+
+      // Dataset for send
+      if (chatInput) {
+        chatInput.dataset.conversationId = conversationId;
+        chatInput.dataset.otherUserId = otherUserId;
+      }
+
+      // Highlight conversation in list
+      document.querySelectorAll('.conversation').forEach(c => c.classList.remove('active'));
+      const convEl = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+      if (convEl) convEl.classList.add('active');
+
+      // Real-time messages
+      chatUnsub = db.collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot((snapshot) => {
+          chatMessages.innerHTML = '';
+          if (snapshot.empty) {
+            chatMessages.innerHTML = `
+              <div class="empty-chat-state">
+                <i class="fas fa-comment-dots"></i>
+                <h3>No messages yet</h3>
+                <p>Say hello and start the conversation!</p>
+              </div>`;
+          } else {
+            snapshot.forEach(doc => {
+              advancedDisplayMessage(doc.data(), doc.id);
+            });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+          }
+          if (!blocked && chatInput) chatInput.style.display = 'flex';
+        }, (err) => {
+          console.error('Messages listener error:', err);
+          chatMessages.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--error-color);">Error loading messages.</p>';
+        });
+
+      // Mobile: show chat full
+      const list = document.querySelector('.conversations-list');
+      const windowEl = document.querySelector('.chat-window');
+      if (window.innerWidth <= 768) {
+        if (list) list.classList.add('mobile-hide');
+        if (windowEl) windowEl.classList.add('mobile-full');
+      }
+
+    } catch (e) {
+      console.error('advancedLoadConversation error:', e);
+      chatMessages.innerHTML = '<p style="text-align:center;padding:2rem;color:var(--error-color);">Error loading conversation.</p>';
+    }
+  }
+
+  // ---------- Enhanced loadConversations (respects deletedFor + blocked) ----------
+  async function advancedLoadConversations() {
+    const listEl = document.getElementById('conversationsList');
+    if (!listEl || !currentUser) return;
+    listEl.innerHTML = '<div class="spinner"></div>';
+
+    try {
+      const blocked = await getBlockedUsers();
+      const snap = await db.collection('conversations')
+        .where('participants', 'array-contains', currentUser.uid)
+        .orderBy('lastUpdated', 'desc')
+        .get();
+
+      listEl.innerHTML = '';
+      let count = 0;
+
+      for (const doc of snap.docs) {
+        const conv = doc.data();
+        // Skip if deleted for me
+        if (conv.deletedFor && conv.deletedFor.includes(currentUser.uid)) continue;
+
+        const otherUserId = (conv.participants || []).find(uid => uid !== currentUser.uid);
+        if (!otherUserId) continue;
+
+        const userDoc = await db.collection('users').doc(otherUserId).get();
+        if (!userDoc.exists) continue;
+        const user = userDoc.data();
+
+        const isBlocked = blocked.includes(otherUserId);
+        const el = document.createElement('div');
+        el.className = 'conversation' + (isBlocked ? ' blocked-conv' : '');
+        el.dataset.conversationId = doc.id;
+        el.dataset.otherUserId = otherUserId;
+        el.dataset.name = (user.fullName || '').toLowerCase();
+
+        const lastUpdated = conv.lastUpdated ? conv.lastUpdated.toDate() : new Date();
+        const timeAgo = (typeof getTimeAgo === 'function') ? getTimeAgo(lastUpdated) : '';
+
+        let avatarHtml = '<i class="fas fa-user"></i>';
+        if (user.photoURL) {
+          avatarHtml = `<img src="${escapeHtml(user.photoURL)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`;
+        }
+
+        el.innerHTML = `
+          <div class="conversation-img">
+            ${avatarHtml}
+            <span class="status-dot ${user.isOnline ? 'online' : ''}"></span>
+          </div>
+          <div class="conversation-info">
+            <div class="conversation-name">${escapeHtml(user.fullName || 'Student')}</div>
+            <div class="conversation-preview">${escapeHtml(conv.lastMessage || 'No messages yet')}</div>
+          </div>
+          <div class="conversation-time">${timeAgo}</div>
+        `;
+
+        el.addEventListener('click', () => {
+          advancedLoadConversation(doc.id, otherUserId);
+        });
+
+        listEl.appendChild(el);
+        count++;
+      }
+
+      if (count === 0) {
+        listEl.innerHTML = `
+          <div class="empty-conversations">
+            <i class="fas fa-comments"></i>
+            <h3>No conversations yet</h3>
+            <p>Start chatting from the Browse page</p>
+          </div>`;
+      }
+    } catch (e) {
+      console.error('advancedLoadConversations error:', e);
+      listEl.innerHTML = '<p style="text-align:center;padding:1.5rem;color:var(--error-color);">Error loading conversations.</p>';
+    }
+  }
+
+  // ---------- Safe send message (single handler) ----------
+  async function advancedSendMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const messageInput = document.getElementById('messageInput');
+    if (!chatInput || !messageInput || !currentUser) return;
+
+    const conversationId = chatInput.dataset.conversationId || activeConversationId;
+    const otherUserId = chatInput.dataset.otherUserId || activeOtherUserId;
+    const messageText = messageInput.value.trim();
+    if (!messageText || !conversationId) return;
+
+    // Prevent send if blocked
+    if (await isUserBlocked(otherUserId)) {
+      showNotification('You have blocked this user. Unblock to send messages.', 'error');
+      return;
+    }
+
+    try {
+      messageInput.disabled = true;
+      await db.collection('conversations').doc(conversationId)
+        .collection('messages').add({
+          text: messageText,
+          senderId: currentUser.uid,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          status: 'sent',
+          deletedFor: []
+        });
+
+      await db.collection('conversations').doc(conversationId).update({
+        lastMessage: messageText,
+        lastMessageSender: currentUser.uid,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+        // Clear deletedFor so it reappears for both if needed
+        deletedFor: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+      });
+
+      messageInput.value = '';
+    } catch (e) {
+      console.error('Send error:', e);
+      showNotification('Error sending message', 'error');
+    } finally {
+      messageInput.disabled = false;
+      messageInput.focus();
+    }
+  }
+
+  // ---------- Wire up UI events (once) ----------
+  function initAdvancedChatUI() {
+    // Override global functions so existing calls use advanced versions
+    window.loadConversations = advancedLoadConversations;
+    window.loadConversation = advancedLoadConversation;
+    window.startConversation = async function(otherUserId) {
+      try {
+        if (await isUserBlocked(otherUserId)) {
+          showNotification('You have blocked this user. Unblock them first from Messages.', 'error');
+          return;
+        }
+        const existing = await db.collection('conversations')
+          .where('participants', 'array-contains', currentUser.uid).get();
+        let conversationId = null;
+        existing.forEach(doc => {
+          if ((doc.data().participants || []).includes(otherUserId)) {
+            conversationId = doc.id;
+          }
+        });
+        if (!conversationId) {
+          const ref = await db.collection('conversations').add({
+            participants: [currentUser.uid, otherUserId],
+            lastMessage: '',
+            lastMessageSender: '',
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            deletedFor: []
+          });
+          conversationId = ref.id;
+        }
+        showSection('messages');
+        const nav = document.querySelector('[data-section="messages"]');
+        if (nav && typeof updateActiveNav === 'function') updateActiveNav(nav);
+        await advancedLoadConversations();
+        advancedLoadConversation(conversationId, otherUserId);
+      } catch (e) {
+        console.error(e);
+        showNotification('Error starting conversation', 'error');
+      }
+    };
+
+    // Dropdown toggle
+    const menuBtn = document.getElementById('chatMenuBtn');
+    const dropdown = document.getElementById('chatDropdown');
+    if (menuBtn && dropdown) {
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+      });
+      document.addEventListener('click', () => dropdown.classList.remove('show'));
+    }
+
+    // Block
+    const blockBtn = document.getElementById('btnBlockUser');
+    if (blockBtn) {
+      blockBtn.addEventListener('click', () => {
+        if (!activeOtherUserId) return;
+        dropdown && dropdown.classList.remove('show');
+        isUserBlocked(activeOtherUserId).then(blocked => {
+          if (blocked) {
+            showChatModal('Unblock user', 'Are you sure you want to unblock this user?', 'Unblock', false, () => {
+              unblockUser(activeOtherUserId);
+              hideChatModal();
+            });
+          } else {
+            showChatModal('Block user', 'Blocked users cannot message you. You can unblock them later.', 'Block', true, () => {
+              blockUser(activeOtherUserId);
+              hideChatModal();
+            });
+          }
+        });
+      });
+    }
+
+    // Delete conversation
+    const delConvBtn = document.getElementById('btnDeleteConv');
+    if (delConvBtn) {
+      delConvBtn.addEventListener('click', () => {
+        if (!activeConversationId) return;
+        dropdown && dropdown.classList.remove('show');
+        showChatModal('Delete conversation', 'This will remove the conversation from your list. The other person may still see it.', 'Delete', true, () => {
+          deleteConversation(activeConversationId);
+          hideChatModal();
+        });
+      });
+    }
+
+    // Clear chat
+    const clearBtn = document.getElementById('btnClearChat');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (!activeConversationId) return;
+        dropdown && dropdown.classList.remove('show');
+        showChatModal('Clear chat', 'All messages will be removed for you only. This cannot be undone.', 'Clear', true, () => {
+          clearChat(activeConversationId);
+          hideChatModal();
+        });
+      });
+    }
+
+    // Report
+    const reportBtn = document.getElementById('btnReportUser');
+    if (reportBtn) {
+      reportBtn.addEventListener('click', () => {
+        if (!activeOtherUserId) return;
+        dropdown && dropdown.classList.remove('show');
+        showChatModal('Report user', 'Report this user for inappropriate behaviour? Our team will review it.', 'Report', true, () => {
+          reportUser(activeOtherUserId);
+          hideChatModal();
+        });
+      });
+    }
+
+    // Mute (simple local toast for now)
+    const muteBtn = document.getElementById('btnMuteChat');
+    if (muteBtn) {
+      muteBtn.addEventListener('click', () => {
+        dropdown && dropdown.classList.remove('show');
+        showNotification('Notifications muted for this chat', 'success');
+      });
+    }
+
+    // View profile
+    const infoBtn = document.getElementById('chatInfoBtn');
+    if (infoBtn) {
+      infoBtn.addEventListener('click', () => {
+        if (!activeOtherUserId) return;
+        // Try to open profile view if exists in browse
+        showNotification('Opening profile...', 'success');
+        // Fallback: switch to browse
+      });
+    }
+
+    // Unblock from banner
+    const unblockBannerBtn = document.getElementById('btnUnblockFromChat');
+    if (unblockBannerBtn) {
+      unblockBannerBtn.addEventListener('click', () => {
+        if (activeOtherUserId) unblockUser(activeOtherUserId);
+      });
+    }
+
+    // Modal buttons
+    const modalCancel = document.getElementById('chatModalCancel');
+    const modalConfirm = document.getElementById('chatModalConfirm');
+    if (modalCancel) modalCancel.addEventListener('click', hideChatModal);
+    if (modalConfirm) {
+      modalConfirm.addEventListener('click', () => {
+        if (typeof pendingConfirmAction === 'function') pendingConfirmAction();
+      });
+    }
+    const overlay = document.getElementById('chatModalOverlay');
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) hideChatModal();
+      });
+    }
+
+    // Message context menu
+    const ctxMenu = document.getElementById('msgContextMenu');
+    if (ctxMenu) {
+      ctxMenu.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        if (action === 'copy' && contextMessageId) {
+          const el = document.querySelector(`[data-message-id="${contextMessageId}"] p`);
+          if (el) {
+            navigator.clipboard.writeText(el.textContent).then(() => {
+              showNotification('Message copied', 'success');
+            }).catch(() => {});
+          }
+        } else if (action === 'delete' && contextMessageId && activeConversationId) {
+          deleteMessageForMe(activeConversationId, contextMessageId);
+        }
+        ctxMenu.style.display = 'none';
+        contextMessageId = null;
+      });
+      document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+    }
+
+    // Send button - remove previous listeners by cloning, then attach once
+    const sendBtn = document.getElementById('sendMessageBtn');
+    if (sendBtn) {
+      const newBtn = sendBtn.cloneNode(true);
+      sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+      newBtn.addEventListener('click', advancedSendMessage);
+    }
+    const msgInput = document.getElementById('messageInput');
+    if (msgInput) {
+      const newInput = msgInput.cloneNode(true);
+      msgInput.parentNode.replaceChild(newInput, msgInput);
+      newInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          advancedSendMessage();
+        }
+      });
+    }
+
+    // Search conversations
+    const searchInput = document.getElementById('convSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value.trim().toLowerCase();
+        document.querySelectorAll('#conversationsList .conversation').forEach(el => {
+          const name = el.dataset.name || '';
+          el.style.display = (!q || name.includes(q)) ? '' : 'none';
+        });
+      });
+    }
+
+    // Mobile back
+    const backBtn = document.getElementById('chatBackBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        const list = document.querySelector('.conversations-list');
+        const windowEl = document.querySelector('.chat-window');
+        if (list) list.classList.remove('mobile-hide');
+        if (windowEl) windowEl.classList.remove('mobile-full');
+        resetChatWindow();
+      });
+    }
+
+    console.log('Advanced Facebook-style chat system loaded');
+  }
+
+  // Init when DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAdvancedChatUI);
+  } else {
+    initAdvancedChatUI();
+  }
+})();
 
   </script>
 </body>
